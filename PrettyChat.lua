@@ -1,6 +1,12 @@
-PrettyChat = select(2, ...)
+local PrettyChat = LibStub("AceAddon-3.0"):NewAddon("PrettyChat", "AceConsole-3.0", "AceEvent-3.0")
 
-
+-- Default settings
+local defaults = {
+    profile = {
+        Height = 0,
+        Width = 0,
+    },
+}
 
 local chatFrame = ChatFrame1
 local editBox = ChatFrame1EditBox
@@ -53,14 +59,23 @@ slideIn:SetDuration(1)
 slideIn:SetOrder(1)
 slideIn:SetOffset(0, 50)
 
-local lockFrame = CreateFrame("Frame", "PrettyChatLockFrame", mainFramemainFrame)
+local lockFrame = CreateFrame("Frame", "PrettyChatLockFrame", mainFrame)
 lockFrame:SetClampedToScreen(false)
 lockFrame:SetWidth(32)
 lockFrame:SetHeight(32)
 lockFrame:UnregisterAllEvents();
 lockFrame:Hide()
 
-
+editBox:SetScript("OnEditFocusGained", OnEditFocusGained)
+editBox:SetScript("OnEditFocusLost", OnEditFocusLost)
+editBox:SetScript("OnTextChanged", OnEditBoxTextChanged)
+lockFrame:SetFrameStrata("HIGH")
+lockFrame:SetPoint("TOPRIGHT",chatFrame, "TOPRIGHT")
+lockFrame.texture = lockFrame:CreateTexture(nil, "BACKGROUND")
+lockFrame.texture:SetPoint("TOPRIGHT", lockFrame, "TOPRIGHT",5,5)
+lockFrame.texture:SetWidth(32)
+lockFrame.texture:SetHeight(32)
+lockFrame.texture:SetTexture("Interface\\AddOns\\PrettyChat\\Textures\\Lock.tga")
 
 
 
@@ -369,35 +384,7 @@ end
 
 
 local function InitializeAddon()
-  editBox:SetScript("OnEditFocusGained", OnEditFocusGained)
-  editBox:SetScript("OnEditFocusLost", OnEditFocusLost)
-  editBox:SetScript("OnTextChanged", OnEditBoxTextChanged)
-  lockFrame:SetFrameStrata("HIGH")
-  lockFrame:SetPoint("TOPRIGHT",chatFrame, "TOPRIGHT")
-  lockFrame.texture = lockFrame:CreateTexture(nil, "BACKGROUND")
-  lockFrame.texture:SetPoint("TOPRIGHT", lockFrame, "TOPRIGHT",5,5)
-  lockFrame.texture:SetWidth(32)
-  lockFrame.texture:SetHeight(32)
-  lockFrame.texture:SetTexture("Interface\\AddOns\\PrettyChat\\Textures\\Lock.tga")
 
-
-
-
-  CHAT_FRAME_TAB_SELECTED_NOMOUSE_ALPHA = 1
-  CHAT_FRAME_TAB_NORMAL_NOMOUSE_ALPHA = 1
-  CHAT_FRAME_TAB_ALERTING_NOMOUSE_ALPHA = 1
-
-  CHAT_FRAME_TAB_SELECTED_MOUSEOVER_ALPHA = 1
-  CHAT_FRAME_TAB_NORMAL_MOUSEOVER_ALPHA = 1
-  CHAT_FRAME_TAB_ALERTING_MOUSEOVER_ALPHA = 1
-
-  CHAT_FRAME_MOUSEOVER_ALPHA = 0
-  CHAT_FRAME_NOMOUSE_ALPHA = 0
-
-  CHAT_TAB_SHOW_DELAY = 0
-  CHAT_TAB_HIDE_DELAY = 0
-  CHAT_FRAME_FADE_TIME = 0
-  CHAT_FRAME_FADE_OUT_TIME = 0
 
 end
 
@@ -419,6 +406,7 @@ mainFrame:RegisterEvent("CHAT_MSG_EMOTE");
 
 
 mainFrame:SetScript("OnEnter", function(self)
+  print("dez")
   if not isLocked and not isEditing then
     OpenChat()
     CheckMouse()
@@ -441,15 +429,90 @@ chatFrame:SetScript("OnMouseDown", function(self, button)
 end)
 
 mainFrame:SetScript("OnEvent", function(_, event, arg1)
-  if event == "PLAYER_LOGIN"  then
-    InitializeAddon()
+  if not UnitAffectingCombat("player") then
+    OpenCloseAfterTimer()
+  end
+
+end)
+
+function PrettyChat:OnInitialize()
+    -- Register the addon's database
+    self.db = LibStub("AceDB-3.0"):New("PrettyChatDB", defaults, true)
+
+    -- Register options table for configuration
+    LibStub("AceConfig-3.0"):RegisterOptionsTable("PrettyChat", self:GetOptions())
+    self.optionsFrame = LibStub("AceConfigDialog-3.0"):AddToBlizOptions("PrettyChat", "Pretty Chat")
+
+
+
+    CHAT_FRAME_TAB_SELECTED_NOMOUSE_ALPHA = 1
+    CHAT_FRAME_TAB_NORMAL_NOMOUSE_ALPHA = 1
+    CHAT_FRAME_TAB_ALERTING_NOMOUSE_ALPHA = 1
+
+    CHAT_FRAME_TAB_SELECTED_MOUSEOVER_ALPHA = 1
+    CHAT_FRAME_TAB_NORMAL_MOUSEOVER_ALPHA = 1
+    CHAT_FRAME_TAB_ALERTING_MOUSEOVER_ALPHA = 1
+
+    CHAT_FRAME_MOUSEOVER_ALPHA = 0
+    CHAT_FRAME_NOMOUSE_ALPHA = 0
+
+    CHAT_TAB_SHOW_DELAY = 0
+    CHAT_TAB_HIDE_DELAY = 0
+    CHAT_FRAME_FADE_TIME = 0
+    CHAT_FRAME_FADE_OUT_TIME = 0
+
     CreateTabSkin()
     CreateEditBoxSkin()
     CreateChatSkin()
     GetJoinedChannels()
-  else
-    if not UnitAffectingCombat("player") then
-      OpenCloseAfterTimer()
+    CloseAfterTimer()
+end
+
+function PrettyChat:GetOptions()
+    local options = {
+        type = "group",
+        name = "My Addon Settings",
+        args = {
+            size = {
+                type = "group",
+                name = "Size",
+                args = {
+                    height = {
+                        type = "range",
+                        name = "Height",
+                        desc = "Adjust the height",
+                        min = 0,
+                        max = 100,
+                        step = 1,
+                        get = function() return self.db.profile.height end,
+                        set = function(_, value) self.db.profile.height = value end,
+                    },
+                    width = {
+                        type = "range",
+                        name = "Width",
+                        desc = "Adjust the heigwidthht",
+                        min = 0,
+                        max = 100,
+                        step = 1,
+                        get = function() return self.db.profile.width end,
+                        set = function(_, value) self.db.profile.width = value end,
+                    },
+                },
+            },
+        },
+    }
+    return options
+end
+
+-- Your addon logic here
+
+-- Register the addon
+PrettyChat:RegisterChatCommand("prettychat", "ChatCommand")
+
+-- Chat command function
+function PrettyChat:ChatCommand(input)
+    if input:lower() == "toggle" then
+        self.db.profile.myVariable = not self.db.profile.myVariable
+        self:Print("MyVariable is now " .. tostring(self.db.profile.myVariable))
     end
-  end
-end)
+end
