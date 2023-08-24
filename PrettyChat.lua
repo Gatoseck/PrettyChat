@@ -25,7 +25,7 @@ local mainFrame = CreateFrame("Frame", "PrettyChatFrame", UIParent)
 mainFrame:SetClampedToScreen(false)
 
 mainFrame:SetWidth(chatFrame:GetWidth()+10)
-mainFrame:SetHeight(chatFrame:GetHeight() + 60)
+mainFrame:SetHeight(chatFrame:GetHeight() + 70)
 mainFrame:SetFrameStrata("BACKGROUND")
 mainFrame:SetPoint("BOTTOMLEFT", UIParent, "BOTTOMLEFT", -2, -2)
 mainFrame:UnregisterAllEvents();
@@ -66,16 +66,6 @@ lockFrame:SetHeight(32)
 lockFrame:UnregisterAllEvents();
 lockFrame:Hide()
 
-editBox:SetScript("OnEditFocusGained", OnEditFocusGained)
-editBox:SetScript("OnEditFocusLost", OnEditFocusLost)
-editBox:SetScript("OnTextChanged", OnEditBoxTextChanged)
-lockFrame:SetFrameStrata("HIGH")
-lockFrame:SetPoint("TOPRIGHT",chatFrame, "TOPRIGHT")
-lockFrame.texture = lockFrame:CreateTexture(nil, "BACKGROUND")
-lockFrame.texture:SetPoint("TOPRIGHT", lockFrame, "TOPRIGHT",5,5)
-lockFrame.texture:SetWidth(32)
-lockFrame.texture:SetHeight(32)
-lockFrame.texture:SetTexture("Interface\\AddOns\\PrettyChat\\Textures\\Lock.tga")
 
 
 
@@ -384,10 +374,33 @@ end
 
 
 local function InitializeAddon()
+  editBox:SetScript("OnEditFocusGained", OnEditFocusGained)
+  editBox:SetScript("OnEditFocusLost", OnEditFocusLost)
+  editBox:SetScript("OnTextChanged", OnEditBoxTextChanged)
+  lockFrame:SetFrameStrata("HIGH")
+  lockFrame:SetPoint("TOPRIGHT",chatFrame, "TOPRIGHT")
+  lockFrame.texture = lockFrame:CreateTexture(nil, "BACKGROUND")
+  lockFrame.texture:SetPoint("TOPRIGHT", lockFrame, "TOPRIGHT",5,5)
+  lockFrame.texture:SetWidth(32)
+  lockFrame.texture:SetHeight(32)
+  lockFrame.texture:SetTexture("Interface\\AddOns\\PrettyChat\\Textures\\Lock.tga")
 
+  CHAT_FRAME_TAB_SELECTED_NOMOUSE_ALPHA = 1
+  CHAT_FRAME_TAB_NORMAL_NOMOUSE_ALPHA = 1
+  CHAT_FRAME_TAB_ALERTING_NOMOUSE_ALPHA = 1
 
+  CHAT_FRAME_TAB_SELECTED_MOUSEOVER_ALPHA = 1
+  CHAT_FRAME_TAB_NORMAL_MOUSEOVER_ALPHA = 1
+  CHAT_FRAME_TAB_ALERTING_MOUSEOVER_ALPHA = 1
+
+  CHAT_FRAME_MOUSEOVER_ALPHA = 0
+  CHAT_FRAME_NOMOUSE_ALPHA = 0
+
+  CHAT_TAB_SHOW_DELAY = 0
+  CHAT_TAB_HIDE_DELAY = 0
+  CHAT_FRAME_FADE_TIME = 0
+  CHAT_FRAME_FADE_OUT_TIME = 0
 end
-
 
 -- Register event handlers
 mainFrame:RegisterEvent("ADDON_LOADED")
@@ -406,7 +419,6 @@ mainFrame:RegisterEvent("CHAT_MSG_EMOTE");
 
 
 mainFrame:SetScript("OnEnter", function(self)
-  print("dez")
   if not isLocked and not isEditing then
     OpenChat()
     CheckMouse()
@@ -429,10 +441,17 @@ chatFrame:SetScript("OnMouseDown", function(self, button)
 end)
 
 mainFrame:SetScript("OnEvent", function(_, event, arg1)
-  if not UnitAffectingCombat("player") then
-    OpenCloseAfterTimer()
+  if event == "PLAYER_LOGIN"  then
+    InitializeAddon()
+    CreateTabSkin()
+    CreateEditBoxSkin()
+    CreateChatSkin()
+    GetJoinedChannels()
+  else
+    if not UnitAffectingCombat("player") then
+      OpenCloseAfterTimer()
+    end
   end
-
 end)
 
 function PrettyChat:OnInitialize()
@@ -445,27 +464,8 @@ function PrettyChat:OnInitialize()
 
 
 
-    CHAT_FRAME_TAB_SELECTED_NOMOUSE_ALPHA = 1
-    CHAT_FRAME_TAB_NORMAL_NOMOUSE_ALPHA = 1
-    CHAT_FRAME_TAB_ALERTING_NOMOUSE_ALPHA = 1
 
-    CHAT_FRAME_TAB_SELECTED_MOUSEOVER_ALPHA = 1
-    CHAT_FRAME_TAB_NORMAL_MOUSEOVER_ALPHA = 1
-    CHAT_FRAME_TAB_ALERTING_MOUSEOVER_ALPHA = 1
 
-    CHAT_FRAME_MOUSEOVER_ALPHA = 0
-    CHAT_FRAME_NOMOUSE_ALPHA = 0
-
-    CHAT_TAB_SHOW_DELAY = 0
-    CHAT_TAB_HIDE_DELAY = 0
-    CHAT_FRAME_FADE_TIME = 0
-    CHAT_FRAME_FADE_OUT_TIME = 0
-
-    CreateTabSkin()
-    CreateEditBoxSkin()
-    CreateChatSkin()
-    GetJoinedChannels()
-    CloseAfterTimer()
 end
 
 function PrettyChat:GetOptions()
