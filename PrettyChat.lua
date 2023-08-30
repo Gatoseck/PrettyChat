@@ -98,8 +98,6 @@ function GetJoinedChannels()
       end
     end
 
-
-
     for i=1, #chanList, 3 do
         if not chanList[i+2] then
           local s_button = CreateFrame("Button", "PrettyChatButton", buttonFrame, "UIPanelButtonTemplate")
@@ -147,9 +145,6 @@ function CreateChatBarButtons()
 end
 
 
-
-
-
 local function CreateTabSkin()
     for i = 1, NUM_CHAT_WINDOWS do
         local tab = _G["ChatFrame" .. i .. "Tab"]
@@ -157,32 +152,20 @@ local function CreateTabSkin()
             tab:SetNormalTexture("Interface\\AddOns\\PrettyChat\\Textures\\ChatTab.tga")
             tab:SetHighlightTexture("Interface\\AddOns\\PrettyChat\\Textures\\ChatTabHighlight.tga")
             tab:SetPushedTexture("Interface\\AddOns\\PrettyChat\\Textures\\NillTexture.tga")
+            tab:SetFrameStrata("BACKGROUND")
             tab:SetAlpha(0)
-
           	tab.noMouseAlpha = 0
           	FCFTab_UpdateAlpha(_G[("ChatFrame%d"):format(i)])
-
           	tab.leftSelectedTexture:SetAlpha(0)
           	tab.rightSelectedTexture:SetAlpha(0)
           	tab.middleSelectedTexture:SetAlpha(0)
-
           	tab.leftHighlightTexture:SetTexture(nil)
           	tab.rightHighlightTexture:SetTexture(nil)
           	tab.middleHighlightTexture:SetTexture(nil)
-          	tab:SetFrameStrata("BACKGROUND")
-
-
-
           	tab.middleHighlightTexture.SetVertexColor = noop
 
-            tab:HookScript("OnEnter", function(self)
-                self:LockHighlight()
-            end)
-
-            tab:HookScript("OnLeave", function(self)
-                self:UnlockHighlight()
-            end)
-
+            tab:HookScript("OnEnter", function(self) self:LockHighlight() end)
+            tab:HookScript("OnLeave", function(self) self:UnlockHighlight() end)
         end
     end
 end
@@ -290,15 +273,15 @@ local function AddYOffset()
   moveFrame:AdjustPointsOffset(0, editHeight)
 end
 
+
+
 local function OpenChat()
   if not isOpen and not isLocked then
     moveFrame:SetPoint("BOTTOMLEFT", mainFrame, "BOTTOMLEFT", 0, initialMoveHeight)
     local startTime = GetTime()
-
     local function OnUpdate(self)
         local elapsedTime = GetTime() - startTime
         local progress = elapsedTime / duration
-
         if progress < 1 then
             local newX =  xOffset * (1 - progress)
             moveFrame:SetPoint("BOTTOMLEFT", mainFrame, "BOTTOMLEFT", newX, initialMoveHeight)
@@ -307,7 +290,6 @@ local function OpenChat()
             self:SetScript("OnUpdate", nil)
         end
     end
-
     moveFrame:SetScript("OnUpdate", OnUpdate)
     isOpen = true
   end
@@ -315,14 +297,11 @@ end
 
 local function CloseChat()
   if isOpen and not isLocked and not isEditing then
-
     moveFrame:SetPoint("BOTTOMLEFT", mainFrame, "BOTTOMLEFT", xOffset, initialMoveHeight)
     local startTime = GetTime()
-
     local function OnUpdate(self)
         local elapsedTime = GetTime() - startTime
         local progress = elapsedTime / duration
-
         if progress < 1 then
             local newX = xOffset * progress
             moveFrame:SetPoint("BOTTOMLEFT", mainFrame, "BOTTOMLEFT", newX, initialMoveHeight)
@@ -331,21 +310,17 @@ local function CloseChat()
           self:SetScript("OnUpdate", nil)
         end
     end
-
     moveFrame:SetScript("OnUpdate", OnUpdate)
     isOpen = false
   end
 end
 
 local function OpenEdit()
-
       editFrame:SetPoint("TOPLEFT", UIParent, "BOTTOMLEFT", 0, 0)
       local startTime = GetTime()
-
       local function OnUpdate(self)
           local elapsedTime = GetTime() - startTime
           local progress = elapsedTime / duration
-
           if progress < 1 then
               local newY = 1.4 * progress
               editFrame:AdjustPointsOffset(0, newY)
@@ -354,9 +329,7 @@ local function OpenEdit()
             self:SetScript("OnUpdate", nil)
           end
       end
-
       editFrame:SetScript("OnUpdate", OnUpdate)
-
 end
 
 
@@ -372,8 +345,6 @@ local function OnEditFocusGained()
   OpenChat()
   OpenEdit()
   isEditing = true
-
-
 end
 
 local function CheckMouse()
@@ -396,10 +367,8 @@ end
 local function OnEditFocusLost()
   editFrame:SetPoint("TOPLEFT", UIParent, "BOTTOMLEFT", 0, 0)
   moveFrame:SetPoint("BOTTOMLEFT", mainFrame, "BOTTOMLEFT", 0, initialMoveHeight)
-
   isEditing = false
   CloseAfterTimer()
-
 end
 
 local function OnEditBoxTextChanged(self)
@@ -483,10 +452,6 @@ end)
 mainFrame:SetScript("OnEvent", function(_, event, arg1)
   if event == "PLAYER_LOGIN"  then
     InitializeAddon()
-    CreateTabSkin()
-    CreateEditBoxSkin()
-    CreateChatFrames()
-    GetJoinedChannels()
   else
     if not UnitAffectingCombat("player") then
       OpenCloseAfterTimer()
@@ -502,10 +467,10 @@ function PrettyChat:OnInitialize()
     LibStub("AceConfig-3.0"):RegisterOptionsTable("PrettyChat", self:GetOptions())
     self.optionsFrame = LibStub("AceConfigDialog-3.0"):AddToBlizOptions("PrettyChat", "Pretty Chat")
 
-
-
-
-
+    CreateTabSkin()
+    CreateEditBoxSkin()
+    CreateChatFrames()
+    GetJoinedChannels()
 end
 
 function PrettyChat:GetOptions()
