@@ -1,0 +1,33 @@
+{
+    "Lua.diagnostics.globals": [
+		"ChatFrame1EditBox",
+		"ChatFrame1",
+		"NUM_CHAT_WINDOWS",
+		"ChatFrame1ResizeButton",
+		"FCFTab_UpdateAlpha",
+		"FCF_SelectDockFrame",
+		"ChatFrame1Tab",
+		"SELECTED_CHAT_FRAME",
+		"DEFAULT_CHAT_FRAME",
+		"NORMAL_FONT_COLOR",
+		"GameFontNormal",
+		"GameFontHighlight",
+		"ACCEPT",
+		"CANCEL",
+		"Settings",
+		"InterfaceOptions_AddCategory",
+		"GameFontHighlightLarge",
+		"GameFontHighlightSmall",
+		"SlashCmdList",
+		"hash_SlashCmdList",
+		"isOpen",
+		"isLocked",
+		"isEditing",
+		"noop",
+		"chatFrame"
+	],
+	"Lua.diagnostics.disable": [
+		"undefined-field",
+		"inject-field"
+	]
+}

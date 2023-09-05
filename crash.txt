@@ -1,0 +1,9 @@
+Message: Interface/AddOns/PrettyChat/PrettyChat.lua:450: Usage: RegisterEvent("eventname", "methodname"): 'methodname' - method 'PLAYER_ENTERING_WORLD' not found on self.
+Time: Tue Sep  5 20:48:35 2023
+Count: 1
+Stack: Interface/AddOns/PrettyChat/PrettyChat.lua:450: Usage: RegisterEvent("eventname", "methodname"): 'methodname' - method 'PLAYER_ENTERING_WORLD' not found on self.
+[string "=[C]"]: ?
+[string "@Interface/AddOns/BlizzMove/Libs/CallbackHandler-1.0/CallbackHandler-1.0.lua"]:102: in function `RegisterEvent'
+[string "@Interface/AddOns/PrettyChat/PrettyChat.lua"]:450: in main chunk
+
+Locals: (*temporary) = "Usage: RegisterEvent("eventname", "methodname"): 'methodname' - method 'PLAYER_ENTERING_WORLD' not found on self."

@@ -8,7 +8,6 @@ local defaults = {
     },
 }
 
---local chatFrame = ChatFrame1
 local editBox = ChatFrame1EditBox
 
 local timer
@@ -17,39 +16,26 @@ local duration = 0.20
 local fontSize = 13
 local fontSpacing = 2
 
-isOpen = false
-isLocked = false
-isEditing = false
-
-local mainFrame = CreateFrame("Frame", "PrettyChatFrame", UIParent)
-mainFrame:SetClampedToScreen(false)
-mainFrame:SetWidth(ChatFrame1:GetWidth()+10)
-mainFrame:SetHeight(ChatFrame1:GetHeight() + 70)
-mainFrame:SetFrameStrata("BACKGROUND")
-mainFrame:SetPoint("BOTTOMLEFT", UIParent, "BOTTOMLEFT", -2, -2)
-mainFrame:UnregisterAllEvents();
-local xOffset = -mainFrame:GetWidth() -50
+local isOpen = true
+local isLocked = false
+local isEditing = false
 
 local initialEditHeight = 20
 local initialMoveHeight = initialEditHeight - 8
 local editHeight = fontSize + fontSpacing
 local yOffset = 0
+local xOffset = 0
+
+
+local mainFrame = CreateFrame("Frame", "PrettyChatFrame", UIParent)
 
 local moveFrame = CreateFrame("Frame", "PrettyChatMoveFrame", UIParent)
-moveFrame:SetClampedToScreen(false)
-moveFrame:SetWidth(10)
-moveFrame:SetHeight(10)
-moveFrame:SetFrameStrata("BACKGROUND")
-moveFrame:SetPoint("BOTTOMLEFT", mainFrame, "BOTTOMLEFT", 0, initialMoveHeight)
-moveFrame:UnregisterAllEvents();
 
 local editFrame = CreateFrame("Frame", "PrettyChatEditFrame", UIParent)
-editFrame:SetClampedToScreen(false)
-editFrame:SetWidth(ChatFrame1:GetWidth() + (fontSize * 3))
-editFrame:SetHeight(fontSize)
-editFrame:SetFrameStrata("TOOLTIP")
-editFrame:SetPoint("TOPLEFT", UIParent, "BOTTOMLEFT", 0, -initialEditHeight)
-editFrame:UnregisterAllEvents();
+
+local lockFrame = CreateFrame("Frame", "PrettyChatLockFrame", mainFrame)
+
+local buttonFrame = CreateFrame("Frame", "PrettyChatButtonFrame", UIParent)
 
 local animationGroup = editFrame:CreateAnimationGroup()
 local slideIn = animationGroup:CreateAnimation("Translation")
@@ -57,68 +43,93 @@ slideIn:SetDuration(1)
 slideIn:SetOrder(1)
 slideIn:SetOffset(0, 50)
 
-local lockFrame = CreateFrame("Frame", "PrettyChatLockFrame", mainFrame)
-lockFrame:SetClampedToScreen(false)
-lockFrame:SetWidth(32)
-lockFrame:SetHeight(32)
-lockFrame:UnregisterAllEvents();
-lockFrame:Hide()
+function InitializeFrames()
+	mainFrame:SetClampedToScreen(false)
+	mainFrame:SetWidth(ChatFrame1:GetWidth() + 20)
+	mainFrame:SetHeight(ChatFrame1:GetHeight() + 70)
+	mainFrame:SetFrameStrata("BACKGROUND")
+	mainFrame:SetPoint("BOTTOMLEFT", UIParent, "BOTTOMLEFT", -2, -2)
+	mainFrame:UnregisterAllEvents();
+	mainFrame.texture = mainFrame:CreateTexture(nil, "BACKGROUND")
+	mainFrame.texture:SetAllPoints(true)
+	mainFrame.texture:SetColorTexture(0.5, 0, 0 , 0.3)
 
 
+	moveFrame:SetClampedToScreen(false)
+	moveFrame:SetWidth(60)
+	moveFrame:SetHeight(60)
+	moveFrame:SetFrameStrata("BACKGROUND")
+	moveFrame:SetPoint("BOTTOMLEFT", mainFrame, "BOTTOMLEFT", 0, initialMoveHeight)
+	moveFrame:UnregisterAllEvents();
+	moveFrame.texture = moveFrame:CreateTexture(nil, "BACKGROUND")
+	moveFrame.texture:SetAllPoints(true)
+  	moveFrame.texture:SetColorTexture(0, 1, 0 , 0.3)
 
+	editFrame:SetClampedToScreen(false)
+	editFrame:SetWidth(ChatFrame1:GetWidth() + (fontSize * 3))
+	editFrame:SetHeight(fontSize)
+	editFrame:SetFrameStrata("TOOLTIP")
+	editFrame:SetPoint("TOPLEFT", UIParent, "BOTTOMLEFT", 0, -initialEditHeight)
+	editFrame:UnregisterAllEvents();
 
+	lockFrame:SetClampedToScreen(false)
+	lockFrame:SetWidth(32)
+	lockFrame:SetHeight(32)
+	lockFrame:UnregisterAllEvents();
+	lockFrame:Hide()
+	lockFrame:SetFrameStrata("HIGH")
+	lockFrame:SetPoint("TOPRIGHT",ChatFrame1, "TOPRIGHT", 7, -10)
+	lockFrame.texture = lockFrame:CreateTexture(nil, "BACKGROUND")
+	lockFrame.texture:SetAllPoints(true)
+	lockFrame.texture:SetTexture("Interface\\AddOns\\PrettyChat\\Textures\\Lock.tga")
 
-local buttonFrame = CreateFrame("Frame", "PrettyChatButtonFrame", UIParent)
-buttonFrame:SetSize(100, editHeight)
-buttonFrame:SetPoint("BOTTOMLEFT", UIParent, "LEFT")
-buttonFrame:SetFrameStrata("HIGH")
-buttonFrame:Hide()
-
-buttonFrame.texture = buttonFrame:CreateTexture(nil, "BACKGROUND")
-buttonFrame.texture:SetAllPoints(true)
-
-buttonFrame.texture:SetColorTexture(0.5, 0, 0 , 0.3)
-
+	buttonFrame:SetSize(100, editHeight)
+	buttonFrame:SetPoint("BOTTOMLEFT", UIParent, "LEFT")
+	buttonFrame:SetFrameStrata("HIGH")
+	buttonFrame:Hide()
+	buttonFrame.texture = buttonFrame:CreateTexture(nil, "BACKGROUND")
+	buttonFrame.texture:SetAllPoints(true)
+  	buttonFrame.texture:SetColorTexture(0.5, 0, 0 , 0.3)
+end
 
 
 function GetJoinedChannels()
-    local lastButton = nil
+   	local lastButton = nil
     local chanList = { GetChannelList() }
     EnumerateServerChannels()
     local chanLista = { GetNumDisplayChannels() }
-    print( GetNumDisplayChannels() )
+    --print( GetNumDisplayChannels() )
     for i = 1, GetNumDisplayChannels(), 1 do
-      local channelName, header, collapsed, channelNumber, count, active, category = GetChannelDisplayInfo(i)
+		local channelName, header, collapsed, channelNumber, count, active, category = GetChannelDisplayInfo(i)
+			--print(channelName )
+			--print(channelNumber )
+			--print(active)
+		if not header then
 
-      print(channelName )
-      print(channelNumber )
-      print(active)
-      if not header then
-
-      end
+		end
     end
 
     for i=1, #chanList, 3 do
-        if not chanList[i+2] then
-          local s_button = CreateFrame("Button", "PrettyChatButton", buttonFrame, "UIPanelButtonTemplate")
-          if lastButton == nil then
-            s_button:SetPoint("BOTTOMLEFT", buttonFrame, "BOTTOMLEFT", 0, 0)
-          else
-            s_button:SetPoint("BOTTOMLEFT", lastButton, "BOTTOMRIGHT", 0, 0)
-          end
-          s_button:EnableMouse(true)
-          s_button:SetSize(20, 20)
-          s_button.texture = s_button:CreateTexture(nil, "BACKGROUND")
-          s_button.texture:SetAllPoints(true)
-          s_button.texture:SetTexture("Interface\\AddOns\\PrettyChat\\Textures\\SkinGlass\\ChanButton_BG.tga")
-          s_button.Middle:SetTexture(nil)
-          s_button.Left:SetTexture(nil)
-          s_button.Right:SetTexture(nil)
-          s_button:SetNormalTexture("Interface\\AddOns\\PrettyChat\\Textures\\SkinGlass\\ChanButton_Center.tga")
-          s_button:SetHighlightTexture("Interface\\AddOns\\PrettyChat\\Textures\\SkinGlass\\ChanButton_Glow_Alpha.tga")
-          s_button:SetPushedTexture("Interface\\AddOns\\PrettyChat\\Textures\\NillTexture.tga")
-          s_button:SetScript("OnClick", function() ChatButtonClicked(chanList[i+1])  end)
-          lastButton = s_button
+		if not chanList[i+2] then
+			local s_button = CreateFrame("Button", "PrettyChatButton", buttonFrame, "UIPanelButtonTemplate")
+			if lastButton == nil then
+				s_button:SetPoint("BOTTOMLEFT", buttonFrame, "BOTTOMLEFT", 0, 0)
+			else
+				s_button:SetPoint("BOTTOMLEFT", lastButton, "BOTTOMRIGHT", 0, 0)
+			end
+			s_button:EnableMouse(true)
+			s_button:SetSize(20, 20)
+			s_button.texture = s_button:CreateTexture(nil, "BACKGROUND")
+			s_button.texture:SetAllPoints(true)
+			s_button.texture:SetTexture("Interface\\AddOns\\PrettyChat\\Textures\\SkinGlass\\ChanButton_BG.tga")
+			s_button.Middle:SetTexture(nil)
+			s_button.Left:SetTexture(nil)
+			s_button.Right:SetTexture(nil)
+			s_button:SetNormalTexture("Interface\\AddOns\\PrettyChat\\Textures\\SkinGlass\\ChanButton_Center.tga")
+			s_button:SetHighlightTexture("Interface\\AddOns\\PrettyChat\\Textures\\SkinGlass\\ChanButton_Glow_Alpha.tga")
+			s_button:SetPushedTexture("Interface\\AddOns\\PrettyChat\\Textures\\NillTexture.tga")
+			s_button:SetScript("OnClick", function() ChatButtonClicked(chanList[i+1])  end)
+			lastButton = s_button
         end
 
     end
@@ -127,8 +138,8 @@ end
 
 function ChatButtonClicked(chatMessage)
   if editBox then
-      if not chatFrame:IsShown() then
-          FCF_SelectDockFrame(chatFrame)
+      if not ChatFrame1:IsShown() then
+          FCF_SelectDockFrame(ChatFrame1)
       end
       editBox:Show()
       editBox:SetFocus()
@@ -144,28 +155,66 @@ function CreateChatBarButtons()
     end
 end
 
+local function isMainFrame(i)
+	local a, b, c, d, e, f, g, h, dockedTo = GetChatWindowInfo(i)
+	if i == 1 or dockedTo ~= nil then
+		return true
+	end
+end
+
+local function EventHandler()
+
+print("de")
+
+end
+
+
 
 local function CreateTabSkin()
     for i = 1, NUM_CHAT_WINDOWS do
         local tab = _G["ChatFrame" .. i .. "Tab"]
         if tab then
+			-- tab:SetMovable(true)
+			-- tab:EnableMouse(true)
+			-- tab:RegisterForDrag("LeftButton")
+			-- tab:SetScript("OnDragStart", function(self, button)
+			-- 	_G["ChatFrame" .. i .. ""]:StartMoving()
+			-- 	EventHandler()
+			-- end)
+			-- tab:SetScript("OnDragStop", function(self)
+			-- 	EventHandler()
+			-- 	_G["ChatFrame" .. i .. ""]:StopMovingOrSizing()
+			-- end)
+			tab:SetMovable(false)
             tab:SetNormalTexture("Interface\\AddOns\\PrettyChat\\Textures\\ChatTab.tga")
             tab:SetHighlightTexture("Interface\\AddOns\\PrettyChat\\Textures\\ChatTabHighlight.tga")
             tab:SetPushedTexture("Interface\\AddOns\\PrettyChat\\Textures\\NillTexture.tga")
-            tab:SetFrameStrata("BACKGROUND")
             tab:SetAlpha(0)
+
           	tab.noMouseAlpha = 0
           	FCFTab_UpdateAlpha(_G[("ChatFrame%d"):format(i)])
+
           	tab.leftSelectedTexture:SetAlpha(0)
           	tab.rightSelectedTexture:SetAlpha(0)
           	tab.middleSelectedTexture:SetAlpha(0)
+
           	tab.leftHighlightTexture:SetTexture(nil)
           	tab.rightHighlightTexture:SetTexture(nil)
           	tab.middleHighlightTexture:SetTexture(nil)
+          	tab:SetFrameStrata("BACKGROUND")
+
+
+
           	tab.middleHighlightTexture.SetVertexColor = noop
 
-            tab:HookScript("OnEnter", function(self) self:LockHighlight() end)
-            tab:HookScript("OnLeave", function(self) self:UnlockHighlight() end)
+            tab:HookScript("OnEnter", function(self)
+                self:LockHighlight()
+            end)
+
+            tab:HookScript("OnLeave", function(self)
+                self:UnlockHighlight()
+            end)
+
         end
     end
 end
@@ -197,20 +246,14 @@ local function CreateEditBoxSkin()
   end
 end
 
-local function StartResize(button)
-  for i = 1, 10 do
-    local chatFrame = _G[("ChatFrame%d"):format(i)]
-    chatFrame:StartSizing("TOPRIGHT")
-  end
-end
 
 
 
-local function SetChatTexture(chatFrame)
+local function CreateChatSkin(chatFrame)
 
   chatFrame:SetWidth(ChatFrame1:GetWidth())
   chatFrame:SetHeight(ChatFrame1:GetHeight())
-  local widthOffset = - 14+ chatFrame:GetWidth()/16
+  local widthOffset = -14 + chatFrame:GetWidth()/16
   local heightOffset = 6 + chatFrame:GetHeight()/16
   chatFrame.texture:SetPoint("TOPRIGHT", chatFrame, "TOPRIGHT", widthOffset ,heightOffset)
   chatFrame.texture:SetPoint("BOTTOMRIGHT", chatFrame, "BOTTOMRIGHT", widthOffset ,-heightOffset)
@@ -220,51 +263,36 @@ local function SetChatTexture(chatFrame)
   chatFrame.texture:SetHeight(chatFrame:GetHeight() + ChatFrame1Tab:GetHeight() + 200 )
 end
 
-local function StopResize(button)
-  mainFrame:SetWidth(ChatFrame1:GetWidth()+10)
-  mainFrame:SetHeight(ChatFrame1:GetHeight() + 70)
-  editFrame:SetWidth(ChatFrame1:GetWidth() + (fontSize * 3))
-  for i = 1, 10 do
-    local chatFrame = _G[("ChatFrame%d"):format(i)]
-    chatFrame:StopMovingOrSizing()
-
-    SetChatTexture(chatFrame)
-  end
-end
 
 local function CreateChatFrames()
-  for i = 1, 10 do
-  	local chatFrame = _G[("ChatFrame%d"):format(i)]
-
-    chatFrame:SetMovable(false)
-    chatFrame:SetClampedToScreen(false)
-    chatFrame:EnableMouse(true)
-    chatFrame:SetFading(false)
-    chatFrame:ClearAllPoints()
-    chatFrame:SetPoint("BOTTOMLEFT", moveFrame, "BOTTOMLEFT", 4, 30)
-    chatFrame:SetFrameStrata("LOW")
-    chatFrame.texture = chatFrame:CreateTexture(nil, "BACKGROUND")
-    chatFrame.texture:SetTexture("Interface\\AddOns\\PrettyChat\\Textures\\ChatBox.tga")
-    SetChatTexture(chatFrame)
-
-  end
-  ChatFrame1ResizeButton:ClearAllPoints()
-  ChatFrame1ResizeButton:SetPoint("TOPRIGHT", ChatFrame1, "TOPRIGHT")
-  ChatFrame1ResizeButton:SetScript("OnMouseDown", function(self) StartResize(self) end)
-  ChatFrame1ResizeButton:SetScript("OnMouseUp", function(self) StopResize(self) end)
+	for i = 1, 10 do
+		local chatFrame = _G[("ChatFrame%d"):format(i)]
+		chatFrame:SetMovable(false)
+		if isMainFrame(i) then
+			chatFrame:SetClampedToScreen(false)
+			chatFrame:SetFading(false)
+			chatFrame:ClearAllPoints()
+			chatFrame:SetPoint("BOTTOMLEFT", moveFrame, "BOTTOMLEFT", 4, 30)
+			chatFrame:SetFrameStrata("LOW")
+			chatFrame.texture = chatFrame:CreateTexture(nil, "BACKGROUND")
+			chatFrame.texture:SetTexture("Interface\\AddOns\\PrettyChat\\Textures\\ChatBox.tga")
+			CreateChatSkin(chatFrame)
+		end
+	end
 
 end
 
-
-
-local function ToggleChat()
-  if not isLocked and not isEditing then
-    if not isOpen then
-      OpenChat()
-    else
-      CloseChat()
-    end
-  end
+local function AnchorChatFrames()
+	for i = 1, 10 do
+		if isMainFrame(i) then
+			local chatFrame = _G[("ChatFrame%d"):format(i)]
+			--chatFrame:SetMovable(false)
+			chatFrame:SetClampedToScreen(false)
+			chatFrame:ClearAllPoints()
+			chatFrame:SetPoint("BOTTOMLEFT", moveFrame, "BOTTOMLEFT", 4, 30)
+			chatFrame:SetFrameStrata("LOW")
+		end
+	end
 end
 
 
@@ -273,15 +301,14 @@ local function AddYOffset()
   moveFrame:AdjustPointsOffset(0, editHeight)
 end
 
-
-
 local function OpenChat()
-  if not isOpen and not isLocked then
+  if not isOpen then
     moveFrame:SetPoint("BOTTOMLEFT", mainFrame, "BOTTOMLEFT", 0, initialMoveHeight)
     local startTime = GetTime()
     local function OnUpdate(self)
         local elapsedTime = GetTime() - startTime
         local progress = elapsedTime / duration
+
         if progress < 1 then
             local newX =  xOffset * (1 - progress)
             moveFrame:SetPoint("BOTTOMLEFT", mainFrame, "BOTTOMLEFT", newX, initialMoveHeight)
@@ -290,6 +317,7 @@ local function OpenChat()
             self:SetScript("OnUpdate", nil)
         end
     end
+
     moveFrame:SetScript("OnUpdate", OnUpdate)
     isOpen = true
   end
@@ -297,11 +325,13 @@ end
 
 local function CloseChat()
   if isOpen and not isLocked and not isEditing then
+
     moveFrame:SetPoint("BOTTOMLEFT", mainFrame, "BOTTOMLEFT", xOffset, initialMoveHeight)
     local startTime = GetTime()
     local function OnUpdate(self)
         local elapsedTime = GetTime() - startTime
         local progress = elapsedTime / duration
+
         if progress < 1 then
             local newX = xOffset * progress
             moveFrame:SetPoint("BOTTOMLEFT", mainFrame, "BOTTOMLEFT", newX, initialMoveHeight)
@@ -310,17 +340,21 @@ local function CloseChat()
           self:SetScript("OnUpdate", nil)
         end
     end
+
     moveFrame:SetScript("OnUpdate", OnUpdate)
     isOpen = false
   end
 end
 
 local function OpenEdit()
+
       editFrame:SetPoint("TOPLEFT", UIParent, "BOTTOMLEFT", 0, 0)
       local startTime = GetTime()
+
       local function OnUpdate(self)
           local elapsedTime = GetTime() - startTime
           local progress = elapsedTime / duration
+
           if progress < 1 then
               local newY = 1.4 * progress
               editFrame:AdjustPointsOffset(0, newY)
@@ -329,7 +363,9 @@ local function OpenEdit()
             self:SetScript("OnUpdate", nil)
           end
       end
+
       editFrame:SetScript("OnUpdate", OnUpdate)
+
 end
 
 
@@ -345,10 +381,12 @@ local function OnEditFocusGained()
   OpenChat()
   OpenEdit()
   isEditing = true
+
+
 end
 
 local function CheckMouse()
-  if not mainFrame:IsMouseOver() then
+  if not mainFrame:IsMouseOver(0,0,0,0) then
     if not isEditing and not isLocked then
       CloseChat()
     end
@@ -357,42 +395,72 @@ local function CheckMouse()
   end
 end
 
+
+
+local function StartResize(button)
+	for i = 1, 10 do
+		if isMainFrame(i) then
+			local chatFrame = _G[("ChatFrame%d"):format(i)]
+			chatFrame:StartSizing("TOPRIGHT")
+		end
+	end
+end
+
+local function StopResize(button)
+  	mainFrame:SetWidth(ChatFrame1:GetWidth()+20)
+	mainFrame:SetHeight(ChatFrame1:GetHeight() + 70)
+	editFrame:SetWidth(ChatFrame1:GetWidth() + (fontSize * 3))
+	moveFrame:SetPoint("BOTTOMLEFT", mainFrame, "BOTTOMLEFT", 0, initialMoveHeight)
+	for i = 1, 10 do
+		if isMainFrame(i) then
+			local chatFrame = _G[("ChatFrame%d"):format(i)]
+			--CreateChatSkin(chatFrame)
+			chatFrame:StopMovingOrSizing()
+		end
+	end
+	AnchorChatFrames()
+end
+
+
 local function CloseAfterTimer()
-  if isOpen and not isLocked then
-    C_Timer.After(2, CheckMouse)
-  end
+	if isOpen and not isLocked then
+		C_Timer.After(2, CheckMouse)
+	end
 end
 
 
 local function OnEditFocusLost()
-  editFrame:SetPoint("TOPLEFT", UIParent, "BOTTOMLEFT", 0, 0)
-  moveFrame:SetPoint("BOTTOMLEFT", mainFrame, "BOTTOMLEFT", 0, initialMoveHeight)
-  isEditing = false
-  CloseAfterTimer()
+	editFrame:SetPoint("TOPLEFT", UIParent, "BOTTOMLEFT", 0, 0)
+	moveFrame:SetPoint("BOTTOMLEFT", mainFrame, "BOTTOMLEFT", 0, initialMoveHeight)
+
+	isEditing = false
+	CloseAfterTimer()
+
 end
 
 local function OnEditBoxTextChanged(self)
-  --self:SetTextColor(0,0,0,1)
-  charCount = #self:GetText() -- Update the character count
-  charMax = 50
-  if charCount > 0 and charCount % charMax == 0 then
-    AddYOffset()
-  end
+	--self:SetTextColor(0,0,0,1)
+	local charCount = #self:GetText() -- Update the character count
+	local charMax = 50
+	if charCount > 0 and charCount % charMax == 0 then
+		AddYOffset()
+	end
 end
 
 
 local function InitializeAddon()
+  xOffset = -ChatFrame1:GetWidth() - 20
+  InitializeFrames()
+
+  ChatFrame1ResizeButton:ClearAllPoints()
+  ChatFrame1ResizeButton:SetPoint("TOPRIGHT", ChatFrame1, "TOPRIGHT")
+  ChatFrame1ResizeButton:SetScript("OnMouseDown", function(self) StartResize(self) end)
+  ChatFrame1ResizeButton:SetScript("OnMouseUp", function(self) StopResize(self) end)
 
   editBox:SetScript("OnEditFocusGained", OnEditFocusGained)
   editBox:SetScript("OnEditFocusLost", OnEditFocusLost)
   editBox:SetScript("OnTextChanged", OnEditBoxTextChanged)
-  lockFrame:SetFrameStrata("HIGH")
-  lockFrame:SetPoint("TOPRIGHT",chatFrame, "TOPRIGHT")
-  lockFrame.texture = lockFrame:CreateTexture(nil, "BACKGROUND")
-  lockFrame.texture:SetPoint("TOPRIGHT", lockFrame, "TOPRIGHT",5,5)
-  lockFrame.texture:SetWidth(32)
-  lockFrame.texture:SetHeight(32)
-  lockFrame.texture:SetTexture("Interface\\AddOns\\PrettyChat\\Textures\\Lock.tga")
+
 
   CHAT_FRAME_TAB_SELECTED_NOMOUSE_ALPHA = 1
   CHAT_FRAME_TAB_NORMAL_NOMOUSE_ALPHA = 1
@@ -409,12 +477,15 @@ local function InitializeAddon()
   CHAT_TAB_HIDE_DELAY = 0
   CHAT_FRAME_FADE_TIME = 0
   CHAT_FRAME_FADE_OUT_TIME = 0
+
+  CreateTabSkin()
+  CreateEditBoxSkin()
+  CreateChatFrames()
+  GetJoinedChannels()
+  CheckMouse()
 end
 
--- Register event handlers
-mainFrame:RegisterEvent("ADDON_LOADED")
-mainFrame:RegisterEvent("PLAYER_LOGIN")
-mainFrame:RegisterEvent("PLAYER_LOGOUT")
+mainFrame:RegisterEvent("PLAYER_ENTERING_WORLD");
 
 mainFrame:RegisterEvent("CHAT_MSG_SAY");
 mainFrame:RegisterEvent("CHAT_MSG_YELL");
@@ -425,7 +496,6 @@ mainFrame:RegisterEvent("CHAT_MSG_INSTANCE_CHAT");
 mainFrame:RegisterEvent("CHAT_MSG_GUILD");
 mainFrame:RegisterEvent("CHAT_MSG_OFFICER");
 mainFrame:RegisterEvent("CHAT_MSG_EMOTE");
-
 
 mainFrame:SetScript("OnEnter", function(self)
   if not isLocked and not isEditing then
@@ -439,24 +509,26 @@ ChatFrame1:SetScript("OnMouseDown", function(self, button)
     if button == "LeftButton" and not isEditing then
         isLocked = not isLocked
         if isLocked then
-          lockFrame:Show()
+          	lockFrame:Show()
         else
-          lockFrame:Hide()
+          	lockFrame:Hide()
         end
         if isOpen then
-          CheckMouse()
+          	CheckMouse()
         end
     end
 end)
 
+
 mainFrame:SetScript("OnEvent", function(_, event, arg1)
-  if event == "PLAYER_LOGIN"  then
-    InitializeAddon()
-  else
-    if not UnitAffectingCombat("player") then
-      OpenCloseAfterTimer()
-    end
-  end
+  	if event == "PLAYER_ENTERING_WORLD"  then
+    	InitializeAddon()
+    	mainFrame:UnregisterEvent("PLAYER_ENTERING_WORLD")
+  	else
+		if not UnitAffectingCombat("player") then
+			OpenCloseAfterTimer()
+		end
+  	end
 end)
 
 function PrettyChat:OnInitialize()
@@ -467,10 +539,6 @@ function PrettyChat:OnInitialize()
     LibStub("AceConfig-3.0"):RegisterOptionsTable("PrettyChat", self:GetOptions())
     self.optionsFrame = LibStub("AceConfigDialog-3.0"):AddToBlizOptions("PrettyChat", "Pretty Chat")
 
-    CreateTabSkin()
-    CreateEditBoxSkin()
-    CreateChatFrames()
-    GetJoinedChannels()
 end
 
 function PrettyChat:GetOptions()
