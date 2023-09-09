@@ -20,9 +20,10 @@ local isOpen = true
 local isLocked = false
 local isEditing = false
 
-local initialEditHeight = 20
-local initialMoveHeight = initialEditHeight - 8
 local editHeight = fontSize + fontSpacing
+local initialEditHeight = editHeight
+local initialMoveHeight = initialEditHeight - 8
+
 local yOffset = 0
 local xOffset = 0
 
@@ -41,7 +42,7 @@ local animationGroup = editFrame:CreateAnimationGroup()
 local slideIn = animationGroup:CreateAnimation("Translation")
 slideIn:SetDuration(1)
 slideIn:SetOrder(1)
-slideIn:SetOffset(0, 50)
+slideIn:SetOffset(0, editHeight)
 
 function InitializeFrames()
 	mainFrame:SetClampedToScreen(false)
@@ -50,9 +51,9 @@ function InitializeFrames()
 	mainFrame:SetFrameStrata("BACKGROUND")
 	mainFrame:SetPoint("BOTTOMLEFT", UIParent, "BOTTOMLEFT", -2, -2)
 	mainFrame:UnregisterAllEvents();
-	mainFrame.texture = mainFrame:CreateTexture(nil, "BACKGROUND")
-	mainFrame.texture:SetAllPoints(true)
-	mainFrame.texture:SetColorTexture(0.5, 0, 0 , 0.3)
+	-- mainFrame.texture = mainFrame:CreateTexture(nil, "BACKGROUND")
+	-- mainFrame.texture:SetAllPoints(true)
+	-- mainFrame.texture:SetColorTexture(0.5, 0, 0 , 0.3)
 
 
 	moveFrame:SetClampedToScreen(false)
@@ -61,9 +62,9 @@ function InitializeFrames()
 	moveFrame:SetFrameStrata("BACKGROUND")
 	moveFrame:SetPoint("BOTTOMLEFT", mainFrame, "BOTTOMLEFT", 0, initialMoveHeight)
 	moveFrame:UnregisterAllEvents();
-	moveFrame.texture = moveFrame:CreateTexture(nil, "BACKGROUND")
-	moveFrame.texture:SetAllPoints(true)
-  	moveFrame.texture:SetColorTexture(0, 1, 0 , 0.3)
+	-- moveFrame.texture = moveFrame:CreateTexture(nil, "BACKGROUND")
+	-- moveFrame.texture:SetAllPoints(true)
+  	-- moveFrame.texture:SetColorTexture(0, 1, 0 , 0.3)
 
 	editFrame:SetClampedToScreen(false)
 	editFrame:SetWidth(ChatFrame1:GetWidth() + (fontSize * 3))
@@ -86,54 +87,85 @@ function InitializeFrames()
 	buttonFrame:SetSize(100, editHeight)
 	buttonFrame:SetPoint("BOTTOMLEFT", UIParent, "LEFT")
 	buttonFrame:SetFrameStrata("HIGH")
-	buttonFrame:Hide()
+	--buttonFrame:Hide()
 	buttonFrame.texture = buttonFrame:CreateTexture(nil, "BACKGROUND")
 	buttonFrame.texture:SetAllPoints(true)
   	buttonFrame.texture:SetColorTexture(0.5, 0, 0 , 0.3)
 end
 
+function TableConcat(t1,t2)
+	for _,v in ipairs(t2) do 
+		table.insert(t1, v)
+	end
+end
+
 
 function GetJoinedChannels()
    	local lastButton = nil
-    local chanList = { GetChannelList() }
-    EnumerateServerChannels()
-    local chanLista = { GetNumDisplayChannels() }
-    --print( GetNumDisplayChannels() )
-    for i = 1, GetNumDisplayChannels(), 1 do
-		local channelName, header, collapsed, channelNumber, count, active, category = GetChannelDisplayInfo(i)
-			--print(channelName )
-			--print(channelNumber )
-			--print(active)
-		if not header then
 
+	local chanList = { "s", "Dire", "sh", "Crier", "w", "Chuchoter" }
+	if true then TableConcat(chanList,{"s", "Dire"}) end
+	if true then TableConcat(chanList,{"s", "Dire"}) end
+
+	if true then TableConcat(chanList,{"s", "Dire"}) end
+
+	if IsInGroup() then TableConcat(chanList,{"p", "Groupe"}) end
+	if IsInRaid() then TableConcat(chanList,{"rsay", "Raid"}) end
+	if UnitIsGroupAssistant("player") then TableConcat(chanList,{"rw", "RaidLead"}) end
+	if IsInGuild() then TableConcat(chanList,{"g", "Guilde"}) end
+	if UnitIsRaidOfficer("player") then TableConcat(chanList,{"o", "Officier"})	end
+
+	
+	
+
+	
+    for i=1, #chanList, 2 do
+		local s_button = CreateFrame("Button", "PrettyChatButton", buttonFrame, "UIPanelButtonTemplate")
+		if lastButton == nil then
+			s_button:SetPoint("BOTTOMLEFT", buttonFrame, "BOTTOMLEFT", 0, 0)
+		else
+			s_button:SetPoint("BOTTOMLEFT", lastButton, "BOTTOMRIGHT", 0, 0)
 		end
-    end
 
-    for i=1, #chanList, 3 do
-		if not chanList[i+2] then
+		s_button:SetScript("OnClick", function() ChatButtonClicked("/"..chanList[i].." ")  end)
+		lastButton = s_button
+	end
+
+	local chanListSpe = { GetChannelList() }
+
+    for i=1, #chanListSpe, 3 do
+		if not chanListSpe[i+2] then
+			print(chanListSpe[i])
+			print(chanListSpe[i+1])
+			print(chanListSpe[i+2])
 			local s_button = CreateFrame("Button", "PrettyChatButton", buttonFrame, "UIPanelButtonTemplate")
 			if lastButton == nil then
 				s_button:SetPoint("BOTTOMLEFT", buttonFrame, "BOTTOMLEFT", 0, 0)
 			else
 				s_button:SetPoint("BOTTOMLEFT", lastButton, "BOTTOMRIGHT", 0, 0)
 			end
-			s_button:EnableMouse(true)
-			s_button:SetSize(20, 20)
-			s_button.texture = s_button:CreateTexture(nil, "BACKGROUND")
-			s_button.texture:SetAllPoints(true)
-			s_button.texture:SetTexture("Interface\\AddOns\\PrettyChat\\Textures\\SkinGlass\\ChanButton_BG.tga")
-			s_button.Middle:SetTexture(nil)
-			s_button.Left:SetTexture(nil)
-			s_button.Right:SetTexture(nil)
-			s_button:SetNormalTexture("Interface\\AddOns\\PrettyChat\\Textures\\SkinGlass\\ChanButton_Center.tga")
-			s_button:SetHighlightTexture("Interface\\AddOns\\PrettyChat\\Textures\\SkinGlass\\ChanButton_Glow_Alpha.tga")
-			s_button:SetPushedTexture("Interface\\AddOns\\PrettyChat\\Textures\\NillTexture.tga")
-			s_button:SetScript("OnClick", function() ChatButtonClicked(chanList[i+1])  end)
+
+			s_button:SetScript("OnClick", function() ChatButtonClicked("/"..chanListSpe[i].." ")  end)
 			lastButton = s_button
         end
 
     end
     return channels
+end
+
+function CreateButton(s_button)
+	s_button:EnableMouse(true)
+	s_button:SetSize(20, 20)
+	s_button.texture = s_button:CreateTexture(nil, "BACKGROUND")
+	s_button.texture:SetAllPoints(true)
+	s_button.texture:SetTexture("Interface\\AddOns\\PrettyChat\\Textures\\SkinGlass\\ChanButton_BG.tga")
+	s_button.texture:SetColorTexture(0.5, 0, 0 , 0.3)
+	s_button.Middle:SetTexture(nil)
+	s_button.Left:SetTexture(nil)
+	s_button.Right:SetTexture(nil)
+	s_button:SetNormalTexture("Interface\\AddOns\\PrettyChat\\Textures\\SkinGlass\\ChanButton_Center.tga")
+	s_button:SetHighlightTexture("Interface\\AddOns\\PrettyChat\\Textures\\SkinGlass\\ChanButton_Glow_Alpha.tga")
+	s_button:SetPushedTexture("Interface\\AddOns\\PrettyChat\\Textures\\NillTexture.tga")
 end
 
 function ChatButtonClicked(chatMessage)
@@ -162,13 +194,6 @@ local function isMainFrame(i)
 	end
 end
 
-local function EventHandler()
-
-print("de")
-
-end
-
-
 
 local function CreateTabSkin()
     for i = 1, NUM_CHAT_WINDOWS do
@@ -177,14 +202,10 @@ local function CreateTabSkin()
 			-- tab:SetMovable(true)
 			-- tab:EnableMouse(true)
 			-- tab:RegisterForDrag("LeftButton")
-			-- tab:SetScript("OnDragStart", function(self, button)
-			-- 	_G["ChatFrame" .. i .. ""]:StartMoving()
-			-- 	EventHandler()
-			-- end)
-			-- tab:SetScript("OnDragStop", function(self)
-			-- 	EventHandler()
-			-- 	_G["ChatFrame" .. i .. ""]:StopMovingOrSizing()
-			-- end)
+			 tab:SetScript("OnDragStart", function(self, button)
+			 end)
+			 tab:SetScript("OnDragStop", function(self)
+			 end)
 			tab:SetMovable(false)
             tab:SetNormalTexture("Interface\\AddOns\\PrettyChat\\Textures\\ChatTab.tga")
             tab:SetHighlightTexture("Interface\\AddOns\\PrettyChat\\Textures\\ChatTabHighlight.tga")
@@ -253,7 +274,7 @@ local function CreateChatSkin(chatFrame)
 
   chatFrame:SetWidth(ChatFrame1:GetWidth())
   chatFrame:SetHeight(ChatFrame1:GetHeight())
-  local widthOffset = -14 + chatFrame:GetWidth()/16
+  local widthOffset = -14 + chatFrame:GetWidth()/15
   local heightOffset = 6 + chatFrame:GetHeight()/16
   chatFrame.texture:SetPoint("TOPRIGHT", chatFrame, "TOPRIGHT", widthOffset ,heightOffset)
   chatFrame.texture:SetPoint("BOTTOMRIGHT", chatFrame, "BOTTOMRIGHT", widthOffset ,-heightOffset)
@@ -263,26 +284,8 @@ local function CreateChatSkin(chatFrame)
   chatFrame.texture:SetHeight(chatFrame:GetHeight() + ChatFrame1Tab:GetHeight() + 200 )
 end
 
-
-local function CreateChatFrames()
-	for i = 1, 10 do
-		local chatFrame = _G[("ChatFrame%d"):format(i)]
-		chatFrame:SetMovable(false)
-		if isMainFrame(i) then
-			chatFrame:SetClampedToScreen(false)
-			chatFrame:SetFading(false)
-			chatFrame:ClearAllPoints()
-			chatFrame:SetPoint("BOTTOMLEFT", moveFrame, "BOTTOMLEFT", 4, 30)
-			chatFrame:SetFrameStrata("LOW")
-			chatFrame.texture = chatFrame:CreateTexture(nil, "BACKGROUND")
-			chatFrame.texture:SetTexture("Interface\\AddOns\\PrettyChat\\Textures\\ChatBox.tga")
-			CreateChatSkin(chatFrame)
-		end
-	end
-
-end
-
 local function AnchorChatFrames()
+	xOffset = -ChatFrame1:GetWidth() - 20
 	for i = 1, 10 do
 		if isMainFrame(i) then
 			local chatFrame = _G[("ChatFrame%d"):format(i)]
@@ -291,9 +294,30 @@ local function AnchorChatFrames()
 			chatFrame:ClearAllPoints()
 			chatFrame:SetPoint("BOTTOMLEFT", moveFrame, "BOTTOMLEFT", 4, 30)
 			chatFrame:SetFrameStrata("LOW")
+			CreateChatSkin(chatFrame)
 		end
 	end
 end
+
+local function CreateChatFrames()
+	for i = 1, 10 do
+		local chatFrame = _G[("ChatFrame%d"):format(i)]
+		--chatFrame:SetMovable(false)
+		if isMainFrame(i) then
+			chatFrame:SetClampedToScreen(false)
+			chatFrame:SetFading(false)
+			chatFrame:ClearAllPoints()
+			chatFrame:SetPoint("BOTTOMLEFT", moveFrame, "BOTTOMLEFT", 4, 30)
+			chatFrame:SetFrameStrata("LOW")
+			chatFrame.texture = chatFrame:CreateTexture(nil, "BACKGROUND")
+			chatFrame.texture:SetTexture("Interface\\AddOns\\PrettyChat\\Textures\\ChatBox.tga")
+
+		end
+	end
+	AnchorChatFrames()
+end
+
+
 
 
 local function AddYOffset()
@@ -414,10 +438,11 @@ local function StopResize(button)
 	for i = 1, 10 do
 		if isMainFrame(i) then
 			local chatFrame = _G[("ChatFrame%d"):format(i)]
-			--CreateChatSkin(chatFrame)
+
 			chatFrame:StopMovingOrSizing()
 		end
 	end
+
 	AnchorChatFrames()
 end
 
@@ -449,9 +474,9 @@ end
 
 
 local function InitializeAddon()
-  xOffset = -ChatFrame1:GetWidth() - 20
-  InitializeFrames()
 
+  InitializeFrames()
+  ChatFrame1ResizeButton:Hide()
   ChatFrame1ResizeButton:ClearAllPoints()
   ChatFrame1ResizeButton:SetPoint("TOPRIGHT", ChatFrame1, "TOPRIGHT")
   ChatFrame1ResizeButton:SetScript("OnMouseDown", function(self) StartResize(self) end)
@@ -510,8 +535,10 @@ ChatFrame1:SetScript("OnMouseDown", function(self, button)
         isLocked = not isLocked
         if isLocked then
           	lockFrame:Show()
+			ChatFrame1ResizeButton:Show()
         else
           	lockFrame:Hide()
+			ChatFrame1ResizeButton:Hide()
         end
         if isOpen then
           	CheckMouse()
