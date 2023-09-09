@@ -1,6 +1,7 @@
-local PrettyChat = LibStub("AceAddon-3.0"):NewAddon("PrettyChat", "AceConsole-3.0", "AceEvent-3.0")
+--===================================================== VARIABLES GLOBALES
 
--- Default settings
+--Set up du menu d'option (Au cas ou y ai besoin mais inutile pour le moment)
+local PrettyChat = LibStub("AceAddon-3.0"):NewAddon("PrettyChat", "AceConsole-3.0", "AceEvent-3.0")
 local defaults = {
     profile = {
         Height = 0,
@@ -8,42 +9,54 @@ local defaults = {
     },
 }
 
+--Init variables globales
 local editBox = ChatFrame1EditBox
 
 local timer
+--durée de l'animation des frames
 local duration = 0.20
 
+--Taille de la police
 local fontSize = 13
 local fontSpacing = 2
 
+--Booleens pour gerer l'ouverture et la fermeture des chatframes
 local isOpen = true
 local isLocked = false
 local isEditing = false
 
+--Position Y des chatframes et de l'editbox
 local editHeight = fontSize + fontSpacing
 local initialEditHeight = editHeight
 local initialMoveHeight = initialEditHeight - 8
 
+--Offsett X et Y des chat frames
 local yOffset = 0
 local xOffset = 0
 
-
+--Frame principale, fait la taille des chat
 local mainFrame = CreateFrame("Frame", "PrettyChatFrame", UIParent)
 
+--Frame qui bouge lors de l'animation des chatFrames, elle a toutes les chatframes docké a la chatFrame1 en enfant
 local moveFrame = CreateFrame("Frame", "PrettyChatMoveFrame", UIParent)
 
+--Frame qui bouge lors de l'amination de l'editbox, elle a l'edit box en enfant
 local editFrame = CreateFrame("Frame", "PrettyChatEditFrame", UIParent)
 
+--Frame qui contient la texture du cadenas lorsque le chat est lock
 local lockFrame = CreateFrame("Frame", "PrettyChatLockFrame", mainFrame)
 
+--Frame qui contient tous les boutons de chat (Dire, Crier, Chuchoter, etc...)
 local buttonFrame = CreateFrame("Frame", "PrettyChatButtonFrame", UIParent)
 
+--Anim de l'editbox (Pas utilisé mais ca serait cool de transferer les animtion sur se systeme)
 local animationGroup = editFrame:CreateAnimationGroup()
 local slideIn = animationGroup:CreateAnimation("Translation")
 slideIn:SetDuration(1)
 slideIn:SetOrder(1)
 slideIn:SetOffset(0, editHeight)
 
+--Initialise le parent, les dimensions et textures des frames
 function InitializeFrames()
 	mainFrame:SetClampedToScreen(false)
 	mainFrame:SetWidth(ChatFrame1:GetWidth() + 20)
@@ -51,6 +64,8 @@ function InitializeFrames()
 	mainFrame:SetFrameStrata("BACKGROUND")
 	mainFrame:SetPoint("BOTTOMLEFT", UIParent, "BOTTOMLEFT", -2, -2)
 	mainFrame:UnregisterAllEvents();
+
+	--RAJOUTE CA SUR UNE FRAME SI TU VEUX VOIR A QUOI ELLE RESSEMBLE DANS L'ESPACE
 	-- mainFrame.texture = mainFrame:CreateTexture(nil, "BACKGROUND")
 	-- mainFrame.texture:SetAllPoints(true)
 	-- mainFrame.texture:SetColorTexture(0.5, 0, 0 , 0.3)
@@ -93,32 +108,28 @@ function InitializeFrames()
   	buttonFrame.texture:SetColorTexture(0.5, 0, 0 , 0.3)
 end
 
+--===================================================== BOUTONS DE CHAT
+
+--Concatene t2 dans t1
 function TableConcat(t1,t2)
 	for _,v in ipairs(t2) do 
 		table.insert(t1, v)
 	end
 end
 
-
+--Création des bouton de la barre de chat
+--Pas tres fonctionnel, le code est degueux car j'arrive pas a concatener chanList et chanListSpe (probablement parce que chanListSpe est multi type)
 function GetJoinedChannels()
    	local lastButton = nil
-
+	-- {"/commande", "Nom", ...}
 	local chanList = { "s", "Dire", "sh", "Crier", "w", "Chuchoter" }
-	if true then TableConcat(chanList,{"s", "Dire"}) end
-	if true then TableConcat(chanList,{"s", "Dire"}) end
-
-	if true then TableConcat(chanList,{"s", "Dire"}) end
-
+	--Marche pas de fou ca je crois
 	if IsInGroup() then TableConcat(chanList,{"p", "Groupe"}) end
 	if IsInRaid() then TableConcat(chanList,{"rsay", "Raid"}) end
 	if UnitIsGroupAssistant("player") then TableConcat(chanList,{"rw", "RaidLead"}) end
 	if IsInGuild() then TableConcat(chanList,{"g", "Guilde"}) end
 	if UnitIsRaidOfficer("player") then TableConcat(chanList,{"o", "Officier"})	end
 
-	
-	
-
-	
     for i=1, #chanList, 2 do
 		local s_button = CreateFrame("Button", "PrettyChatButton", buttonFrame, "UIPanelButtonTemplate")
 		if lastButton == nil then
@@ -126,13 +137,12 @@ function GetJoinedChannels()
 		else
 			s_button:SetPoint("BOTTOMLEFT", lastButton, "BOTTOMRIGHT", 0, 0)
 		end
-
 		s_button:SetScript("OnClick", function() ChatButtonClicked("/"..chanList[i].." ")  end)
 		lastButton = s_button
 	end
 
+	-- {int channelID, "Nom", bool actif}
 	local chanListSpe = { GetChannelList() }
-
     for i=1, #chanListSpe, 3 do
 		if not chanListSpe[i+2] then
 			print(chanListSpe[i])
@@ -148,11 +158,11 @@ function GetJoinedChannels()
 			s_button:SetScript("OnClick", function() ChatButtonClicked("/"..chanListSpe[i].." ")  end)
 			lastButton = s_button
         end
-
     end
     return channels
 end
 
+--Créé les boutons sur l'interface (pas utilisé avant d'avoir rendu les boutons robustes)
 function CreateButton(s_button)
 	s_button:EnableMouse(true)
 	s_button:SetSize(20, 20)
@@ -168,6 +178,7 @@ function CreateButton(s_button)
 	s_button:SetPushedTexture("Interface\\AddOns\\PrettyChat\\Textures\\NillTexture.tga")
 end
 
+--Evenement quand on clique sur un boutton
 function ChatButtonClicked(chatMessage)
   if editBox then
       if not ChatFrame1:IsShown() then
@@ -179,14 +190,9 @@ function ChatButtonClicked(chatMessage)
   end
 end
 
-function CreateChatBarButtons()
-    local channels =  GetJoinedChannels()
-    for i=1, #channels, 1 do
+--===================================================== CHAT FRAME TABS
 
-
-    end
-end
-
+--Determine si une chatFrame est docké a une autre chatFrame
 local function isMainFrame(i)
 	local a, b, c, d, e, f, g, h, dockedTo = GetChatWindowInfo(i)
 	if i == 1 or dockedTo ~= nil then
@@ -194,7 +200,7 @@ local function isMainFrame(i)
 	end
 end
 
-
+--Initialise parent, dimensions et textures des Tabs des chatframes
 local function CreateTabSkin()
     for i = 1, NUM_CHAT_WINDOWS do
         local tab = _G["ChatFrame" .. i .. "Tab"]
@@ -224,14 +230,11 @@ local function CreateTabSkin()
           	tab.middleHighlightTexture:SetTexture(nil)
           	tab:SetFrameStrata("BACKGROUND")
 
-
-
           	tab.middleHighlightTexture.SetVertexColor = noop
 
             tab:HookScript("OnEnter", function(self)
                 self:LockHighlight()
             end)
-
             tab:HookScript("OnLeave", function(self)
                 self:UnlockHighlight()
             end)
@@ -240,6 +243,9 @@ local function CreateTabSkin()
     end
 end
 
+--===================================================== EDIT BOX SKIN
+
+--Créé les edits box (pas sur qu'il faille en créer 10 car j'ai l'impression qu'on utilise toujours l'editbox de la chatframe1)
 local function CreateEditBoxSkin()
   for i = 1, 10 do
   	local editBox = _G[("ChatFrame%dEditBox"):format(i)]
@@ -268,8 +274,9 @@ local function CreateEditBoxSkin()
 end
 
 
+--===================================================== MANIPULATION CHAT FRAME ET SKIN
 
-
+--Initialise la texture d'une chatFrame (pour apres redimensionnement)
 local function CreateChatSkin(chatFrame)
 
   chatFrame:SetWidth(ChatFrame1:GetWidth())
@@ -284,6 +291,7 @@ local function CreateChatSkin(chatFrame)
   chatFrame.texture:SetHeight(chatFrame:GetHeight() + ChatFrame1Tab:GetHeight() + 200 )
 end
 
+--Initialise le parent et la position d'une chatFrame (Si on redimensionne la chatFrame1 sans reset les ancres ca casse les chatFrames)
 local function AnchorChatFrames()
 	xOffset = -ChatFrame1:GetWidth() - 20
 	for i = 1, 10 do
@@ -299,6 +307,7 @@ local function AnchorChatFrames()
 	end
 end
 
+--Initialise la texture d'une chatFrame
 local function CreateChatFrames()
 	for i = 1, 10 do
 		local chatFrame = _G[("ChatFrame%d"):format(i)]
@@ -317,16 +326,18 @@ local function CreateChatFrames()
 	AnchorChatFrames()
 end
 
+--===================================================== MOUVEMENT DES FRAMES
 
-
-
+--Ajoute un offset sur la position Y des chatFrame et de l'edit box (utilisé quand l'editbox doit afficher une ligne de plus)
 local function AddYOffset()
   editFrame:AdjustPointsOffset(0, editHeight)
   moveFrame:AdjustPointsOffset(0, editHeight)
 end
 
+--Animation d'ouverture des chatframe (A transferer en animation simple comme l'edit box)
 local function OpenChat()
   if not isOpen then
+	--Position initiale
     moveFrame:SetPoint("BOTTOMLEFT", mainFrame, "BOTTOMLEFT", 0, initialMoveHeight)
     local startTime = GetTime()
     local function OnUpdate(self)
@@ -335,8 +346,10 @@ local function OpenChat()
 
         if progress < 1 then
             local newX =  xOffset * (1 - progress)
+			--Position animation
             moveFrame:SetPoint("BOTTOMLEFT", mainFrame, "BOTTOMLEFT", newX, initialMoveHeight)
         else
+			--Position fin animation
             moveFrame:SetPoint("BOTTOMLEFT", mainFrame, "BOTTOMLEFT", 0, initialMoveHeight)
             self:SetScript("OnUpdate", nil)
         end
@@ -347,6 +360,7 @@ local function OpenChat()
   end
 end
 
+--Animation de fermeture des chatframe
 local function CloseChat()
   if isOpen and not isLocked and not isEditing then
 
@@ -370,6 +384,7 @@ local function CloseChat()
   end
 end
 
+--Animation de l'editbox
 local function OpenEdit()
 
       editFrame:SetPoint("TOPLEFT", UIParent, "BOTTOMLEFT", 0, 0)
@@ -392,8 +407,10 @@ local function OpenEdit()
 
 end
 
+--===================================================== CONTROLE DES FRAMES
 
 
+--Ouvre le chat puis le ferme au bout d'un timer (utilisé quand le chat recoit un message)
 local function OpenCloseAfterTimer()
   if not isOpen and not isLocked then
     OpenChat()
@@ -401,14 +418,14 @@ local function OpenCloseAfterTimer()
   end
 end
 
+--Lorsque le joueur est entrain de taper un message
 local function OnEditFocusGained()
   OpenChat()
   OpenEdit()
   isEditing = true
-
-
 end
 
+--Verifie si la souris est sur la mainframe, sinon on ferme le chat
 local function CheckMouse()
   if not mainFrame:IsMouseOver(0,0,0,0) then
     if not isEditing and not isLocked then
@@ -420,7 +437,7 @@ local function CheckMouse()
 end
 
 
-
+--Evenement quand le joueur resize le chat (avec Prat notemment)
 local function StartResize(button)
 	for i = 1, 10 do
 		if isMainFrame(i) then
@@ -430,6 +447,7 @@ local function StartResize(button)
 	end
 end
 
+--Evenement quand le joueur arrete de resize le chat
 local function StopResize(button)
   	mainFrame:SetWidth(ChatFrame1:GetWidth()+20)
 	mainFrame:SetHeight(ChatFrame1:GetHeight() + 70)
@@ -446,23 +464,23 @@ local function StopResize(button)
 	AnchorChatFrames()
 end
 
-
+--Ferme le chat 2 sec apres que le joueur a terminé d'interagir avec l'edit box
 local function CloseAfterTimer()
 	if isOpen and not isLocked then
 		C_Timer.After(2, CheckMouse)
 	end
 end
 
-
+--Evenement quand le joueur a terminé d'interagir avec l'edit box
 local function OnEditFocusLost()
 	editFrame:SetPoint("TOPLEFT", UIParent, "BOTTOMLEFT", 0, 0)
 	moveFrame:SetPoint("BOTTOMLEFT", mainFrame, "BOTTOMLEFT", 0, initialMoveHeight)
 
 	isEditing = false
 	CloseAfterTimer()
-
 end
 
+--Evenement quand le joueur ecrit dans le chat (utilisé pour augmenter le nombre de ligne de l'editbox)
 local function OnEditBoxTextChanged(self)
 	--self:SetTextColor(0,0,0,1)
 	local charCount = #self:GetText() -- Update the character count
@@ -472,10 +490,28 @@ local function OnEditBoxTextChanged(self)
 	end
 end
 
+--Verrouille le chat ouvert ou lui permet de se fermer lorsque le joueur n'a pas sa souris dessus
+local function ToggleChatLock()
+	isLocked = not isLocked
+	if isLocked then
+		  lockFrame:Show()
+		ChatFrame1ResizeButton:Show()
+	else
+		  lockFrame:Hide()
+		ChatFrame1ResizeButton:Hide()
+	end
+	if isOpen then
+		  CheckMouse()
+	end
+end
 
+--===================================================== INITIALISATION DE L'ADDON
+
+--Initialise les variables globales de WoW et créé toutes les composants graphiques de l'addon
 local function InitializeAddon()
 
   InitializeFrames()
+
   ChatFrame1ResizeButton:Hide()
   ChatFrame1ResizeButton:ClearAllPoints()
   ChatFrame1ResizeButton:SetPoint("TOPRIGHT", ChatFrame1, "TOPRIGHT")
@@ -510,8 +546,10 @@ local function InitializeAddon()
   CheckMouse()
 end
 
+--DEGUEU !
+--Regarde si le joueur entre dans le jeu
 mainFrame:RegisterEvent("PLAYER_ENTERING_WORLD");
-
+--Regarde si le joueur recoit un message
 mainFrame:RegisterEvent("CHAT_MSG_SAY");
 mainFrame:RegisterEvent("CHAT_MSG_YELL");
 mainFrame:RegisterEvent("CHAT_MSG_PARTY");
@@ -522,6 +560,19 @@ mainFrame:RegisterEvent("CHAT_MSG_GUILD");
 mainFrame:RegisterEvent("CHAT_MSG_OFFICER");
 mainFrame:RegisterEvent("CHAT_MSG_EMOTE");
 
+--Initialise l'addon quand le joueur entre dans le jeu et ouvre le chat lorsqu'il recois un message
+mainFrame:SetScript("OnEvent", function(_, event, arg1)
+	if event == "PLAYER_ENTERING_WORLD"  then
+	  InitializeAddon()
+	  mainFrame:UnregisterEvent("PLAYER_ENTERING_WORLD")
+	else
+	  if not UnitAffectingCombat("player") then
+		  OpenCloseAfterTimer()
+	  end
+	end
+end)
+
+--Ouvre le chat quand le joueur met sa souris sur la mainFrame
 mainFrame:SetScript("OnEnter", function(self)
   if not isLocked and not isEditing then
     OpenChat()
@@ -529,35 +580,16 @@ mainFrame:SetScript("OnEnter", function(self)
   end
 end)
 
-
+--Verrouille les chatFrame lorsque le joueur clique sur la chatFrame 1
 ChatFrame1:SetScript("OnMouseDown", function(self, button)
     if button == "LeftButton" and not isEditing then
-        isLocked = not isLocked
-        if isLocked then
-          	lockFrame:Show()
-			ChatFrame1ResizeButton:Show()
-        else
-          	lockFrame:Hide()
-			ChatFrame1ResizeButton:Hide()
-        end
-        if isOpen then
-          	CheckMouse()
-        end
+		ToggleChatLock()
     end
 end)
 
 
-mainFrame:SetScript("OnEvent", function(_, event, arg1)
-  	if event == "PLAYER_ENTERING_WORLD"  then
-    	InitializeAddon()
-    	mainFrame:UnregisterEvent("PLAYER_ENTERING_WORLD")
-  	else
-		if not UnitAffectingCombat("player") then
-			OpenCloseAfterTimer()
-		end
-  	end
-end)
 
+--Systeme de menu et sauvegarde apres deco ou reload (pas utilisé)
 function PrettyChat:OnInitialize()
     -- Register the addon's database
     self.db = LibStub("AceDB-3.0"):New("PrettyChatDB", defaults, true)
@@ -568,6 +600,7 @@ function PrettyChat:OnInitialize()
 
 end
 
+--Systeme de menu et sauvegarde apres deco ou reload (pas utilisé)
 function PrettyChat:GetOptions()
     local options = {
         type = "group",
@@ -604,12 +637,9 @@ function PrettyChat:GetOptions()
     return options
 end
 
--- Your addon logic here
-
--- Register the addon
+-- Créé la "/" commande de l'addon (pas utilisé)
 PrettyChat:RegisterChatCommand("prettychat", "ChatCommand")
 
--- Chat command function
 function PrettyChat:ChatCommand(input)
     if input:lower() == "toggle" then
         self.db.profile.myVariable = not self.db.profile.myVariable

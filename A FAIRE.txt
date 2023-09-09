@@ -1,0 +1,27 @@
+L'addon doit rester juste un skin du chat sinon ca complique fort.
+Les chatframes liées a la ChatFrame1 (Général) doivent avoir une texture avec un ratio correct le plus souvent
+Le chat s'ouvre quand le joueur passe la souris dessus
+Il peut verrouiller le chat en mode ouvert en cliquant dessus
+Il lorsqu'il veut ecrire un message l'edit box (input du texte) aparait et le chat reste ouvert
+L'edit box est multiligne et doit grandir lorsqu'une ligne est pleine, elle ne doit pas cacher le chat
+Sous la chatFrame1 il y doit y avoir une barre de bouton de chat
+L'affichage des boutons est conditionné par le contexte du joueur (en groupe, en raid)
+Chaque boutons doit ouvrir l'editbox dans le canal correspondant a leur couleur	
+L'addon doit etre compatible avenc Prat et eventuellement WIM
+	Prat impacte l'addon lors du redimensionement
+	Faut voir pour ouvrir WIM quand tu clique sur le bouton chuchoter 
+
+FEATURES
+Barre de boutons
+Enlever le Hide() sur la buttonFrame
+Finir la barre de boutons chat (Dire, Crier ...)
+Les boutons de la barre de chat pourrais s'illuminer lorsque le joueur recoit un message (si on parle en guilde, le bouton guilde s'allume)
+Comme ca pas besoin d'ouvrir le chat a chaque message le joueur choisi
+
+AMELIORATIONS
+Animation de l'edit ChatBox 
+Trouver un moyen de rendre le code lisible
+
+PROBLEMES
+/w ne change pas le canal, il faut qu'il soit sous le format /w NomDuJoueur pour se mettre en rose (faudra ptetre enlever le bouton)
+Le mieux serait d'ouvrir WIM quand tu clique sur le bouton wisp (mais faudra ptetre faire un mail au createur pour une ptit maj)
