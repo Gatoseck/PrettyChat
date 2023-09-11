@@ -4,6 +4,7 @@
 ## Author: Gatosec
 ## Version: 1.0
 ## SavedVariables: PrettyChatDB
+## OptionalDeps: WIM
 
 # Load the core Ace3 libraries
 Libs\AceAddon-3.0\AceAddon-3.0.lua
