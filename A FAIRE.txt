@@ -25,3 +25,5 @@ Trouver un moyen de rendre le code lisible
 PROBLEMES
 /w ne change pas le canal, il faut qu'il soit sous le format /w NomDuJoueur pour se mettre en rose (faudra ptetre enlever le bouton)
 Le mieux serait d'ouvrir WIM quand tu clique sur le bouton wisp (mais faudra ptetre faire un mail au createur pour une ptit maj)
+
+coucou
