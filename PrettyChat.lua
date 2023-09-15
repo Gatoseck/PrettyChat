@@ -11,6 +11,18 @@ local defaults = {
 	}
 }
 
+--Définition de couleurs (rgb de 0 à 1) pour chaque channel standard et pour les channels spécifiques
+local channelsListColor = {}
+channelsListColor["s"] = {1, 1, 1} -- blanc
+channelsListColor["sh"] = {1, 0, 0} -- rouge
+channelsListColor["w"] = {0.9, 0.1, 0.9} -- violet
+channelsListColor["p"] = {0.65, 0.55, 1} -- bleu terne
+channelsListColor["rsay"] = {0.8, 0.5, 0} -- orange
+channelsListColor["rw"] = {0.9, 0.1, 0.1} -- rouge foncé
+channelsListColor["g"] = {0.4, 0.8, 0.3} -- vert pétant
+channelsListColor["o"] = {0.2, 0.6, 0.2} -- vert foncé
+channelsListColor["spe"] = {0.7, 0.7, 0.7} -- gris
+
 --Init variables globales
 local editBox = ChatFrame1EditBox
 
@@ -160,6 +172,8 @@ function GetJoinedChannels()
 	end
 
 	for i = 1, #chanList, 2 do
+		local channelCommand = chanList[i]
+		local channelColor = channelsListColor[channelCommand]
 		local s_button = CreateFrame("Button", "PrettyChatButton", buttonFrame, "UIPanelButtonTemplate")
 		s_button.ClearButton = clearButton
 
@@ -171,10 +185,10 @@ function GetJoinedChannels()
 		s_button:SetScript(
 			"OnClick",
 			function()
-				ChatButtonClicked("/" .. chanList[i] .. " ")
+				ChatButtonClicked("/" .. channelCommand .. " ")
 			end
 		)
-		CreateButton(s_button)
+		CreateButton(s_button, channelColor)
 		lastButton = s_button
 	end
 
@@ -198,7 +212,7 @@ function GetJoinedChannels()
 					ChatButtonClicked("/" .. chanListSpe[i] .. " ")
 				end
 			)
-			CreateButton(s_button)
+			CreateButton(s_button, channelsListColor["spe"])
 			lastButton = s_button
 		end
 	end
@@ -212,7 +226,7 @@ function GetJoinedChannels()
 end
 
 --Créé les boutons sur l'interface (pas utilisé avant d'avoir rendu les boutons robustes)
-function CreateButton(s_button)
+function CreateButton(s_button, color)
 	s_button:EnableMouse(true)
 	s_button:SetSize(20, 20)
 	s_button:ClearDisabledTexture()
@@ -222,13 +236,12 @@ function CreateButton(s_button)
 	s_button.texture = s_button:CreateTexture(nil, "BACKGROUND")
 	s_button.texture:SetAllPoints(true)
 	s_button.texture:SetTexture("Interface\\AddOns\\PrettyChat\\Textures\\SkinGlass\\ChanButton_BG.tga")
-	s_button.texture:SetGradient("VERTICAL", CreateColor(1, 1, 0, 1), CreateColor(1, 1, 0, 1))
 	s_button.Middle:SetTexture(nil)
 	s_button.Left:SetTexture(nil)
 	s_button.Right:SetTexture(nil)
 	s_button:SetNormalTexture("Interface\\AddOns\\PrettyChat\\Textures\\SkinGlass\\ChanButton_Center.tga")
 	local normalTex = s_button:GetNormalTexture()
-	normalTex:SetGradient("VERTICAL", CreateColor(1, 1, 0, 1), CreateColor(1, 1, 0, 1))
+	normalTex:SetVertexColor(color[1], color[2], color[3])
 	s_button:SetHighlightTexture("Interface\\AddOns\\PrettyChat\\Textures\\SkinGlass\\ChanButton_Glow_Alpha.tga")
 	local highlightTex = s_button:GetHighlightTexture()
 
