@@ -14,8 +14,8 @@ local defaults = {
 --Définition de couleurs (rgb de 0 à 1) pour chaque channel standard et pour les channels spécifiques
 local channelsListColor = {}
 channelsListColor["s"] = {1, 1, 1} -- blanc
-channelsListColor["sh"] = {1, 0, 0} -- rouge
-channelsListColor["w"] = {0.9, 0.1, 0.9} -- violet
+channelsListColor["sh"] = {0.90, 0.12, 0.12} -- rouge
+channelsListColor["w"] = {0.9, 0.5, 0.8} -- violet
 channelsListColor["p"] = {0.65, 0.55, 1} -- bleu terne
 channelsListColor["rsay"] = {0.8, 0.5, 0} -- orange
 channelsListColor["rw"] = {0.9, 0.1, 0.1} -- rouge foncé
@@ -113,13 +113,10 @@ function InitializeFrames()
 	lockFrame.texture:SetAllPoints(true)
 	lockFrame.texture:SetTexture("Interface\\AddOns\\PrettyChat\\Textures\\Lock.tga")
 
-	buttonFrame:SetSize(100, editHeight)
-	buttonFrame:SetPoint("BOTTOMLEFT", UIParent, "LEFT")
+	buttonFrame:SetSize(10, editHeight + fontSize - 4)
+	buttonFrame:SetPoint("BOTTOMLEFT", UIParent, "BOTTOMLEFT", 5, 0)
 	buttonFrame:SetFrameStrata("HIGH")
 	--buttonFrame:Hide()
-	buttonFrame.texture = buttonFrame:CreateTexture(nil, "BACKGROUND")
-	buttonFrame.texture:SetAllPoints(true)
-	buttonFrame.texture:SetColorTexture(0.5, 0, 0, 0.3)
 end
 
 --===================================================== BOUTONS DE CHAT
@@ -148,6 +145,7 @@ local function clearButton(self)
 		self[buttonProps[i]] = nil
 	end
 end
+
 --Création des bouton de la barre de chat
 --Pas tres fonctionnel, le code est degueux car j'arrive pas a concatener chanList et chanListSpe (probablement parce que chanListSpe est multi type)
 function GetJoinedChannels()
@@ -178,7 +176,7 @@ function GetJoinedChannels()
 		s_button.ClearButton = clearButton
 
 		if lastButton == nil then
-			s_button:SetPoint("BOTTOMLEFT", buttonFrame, "BOTTOMLEFT", 0, 0)
+			s_button:SetPoint("LEFT", buttonFrame, "LEFT", 0, 0)
 		else
 			s_button:SetPoint("BOTTOMLEFT", lastButton, "BOTTOMRIGHT", 0, 0)
 		end
@@ -201,7 +199,7 @@ function GetJoinedChannels()
 			-- print(chanListSpe[i+2])
 			local s_button = CreateFrame("Button", "PrettyChatButton", buttonFrame, "UIPanelButtonTemplate")
 			if lastButton == nil then
-				s_button:SetPoint("BOTTOMLEFT", buttonFrame, "BOTTOMLEFT", 0, 0)
+				s_button:SetPoint("LEFT", buttonFrame, "LEFT", 0, 0)
 			else
 				s_button:SetPoint("BOTTOMLEFT", lastButton, "BOTTOMRIGHT", 0, 0)
 			end
@@ -229,11 +227,12 @@ end
 function CreateButton(s_button, color)
 	s_button:EnableMouse(true)
 	s_button:SetSize(20, 20)
+	s_button:DisableDrawLayer("BACKGROUND")
 	s_button:ClearDisabledTexture()
 	s_button:ClearHighlightTexture()
 	s_button:ClearNormalTexture()
 	s_button:ClearPushedTexture()
-	s_button.texture = s_button:CreateTexture(nil, "BACKGROUND")
+	s_button.texture = s_button:CreateTexture(nil, "BORDER")
 	s_button.texture:SetAllPoints(true)
 	s_button.texture:SetTexture("Interface\\AddOns\\PrettyChat\\Textures\\SkinGlass\\ChanButton_BG.tga")
 	s_button.Middle:SetTexture(nil)
@@ -247,7 +246,7 @@ function CreateButton(s_button, color)
 
 	highlightTex:ClearAllPoints()
 	highlightTex:SetPoint("CENTER", s_button.texture, "CENTER")
-	highlightTex:SetSize(16, 16)
+	highlightTex:SetSize(12, 12)
 
 	s_button:SetPushedTexture("Interface\\AddOns\\PrettyChat\\Textures\\NillTexture.tga")
 	local puchedTex = s_button:GetPushedTexture()
