@@ -44,7 +44,7 @@ local editHeight = fontSize + fontSpacing
 local initialEditHeight = editHeight
 local initialMoveHeight = initialEditHeight - 8
 
---Offsett X et Y des chat frames
+--Offset X et Y des chat frames
 local yOffset = 0
 local xOffset = 0
 
@@ -91,9 +91,6 @@ function InitializeFrames()
 	moveFrame:SetFrameStrata("BACKGROUND")
 	moveFrame:SetPoint("BOTTOMLEFT", mainFrame, "BOTTOMLEFT", 0, initialMoveHeight)
 	moveFrame:UnregisterAllEvents()
-	-- moveFrame.texture = moveFrame:CreateTexture(nil, "BACKGROUND")
-	-- moveFrame.texture:SetAllPoints(true)
-	-- moveFrame.texture:SetColorTexture(0, 1, 0 , 0.3)
 
 	editFrame:SetClampedToScreen(false)
 	editFrame:SetWidth(ChatFrame1:GetWidth() + (fontSize * 3))
@@ -286,7 +283,34 @@ function ChatButtonClicked(chatMessage)
 	end
 end
 
---===================================================== CHAT FRAME TABS
+--===================================================== EDIT BOX SKIN
+
+--Créé les edits box (pas sur qu'il faille en créer 10 car j'ai l'impression qu'on utilise toujours l'editbox de la chatframe1)
+local function CreateEditBoxSkin()
+	local editBox = _G["ChatFrame1EditBox"]
+
+	_G["ChatFrame1EditBoxLeft"]:SetAlpha(0)
+	_G["ChatFrame1EditBoxRight"]:SetAlpha(0)
+	_G["ChatFrame1EditBoxMid"]:SetAlpha(0)
+
+	editBox:SetFrameStrata("TOOLTIP")
+	editBox:SetMultiLine(true)
+	editBox:ClearAllPoints()
+	editBox:SetSpacing(fontSpacing)
+	editBox:SetPoint("BOTTOMLEFT", editFrame, "BOTTOMLEFT", -4, 0)
+	editBox:SetPoint("TOPRIGHT", editFrame, "TOPRIGHT")
+	editBox:SetFont("Fonts\\FRIZQT__.TTF", fontSize, "")
+	editBox:SetJustifyH("LEFT")
+	editBox:SetJustifyV("CENTER")
+
+	editBox.texture = editBox:CreateTexture(nil, "BACKGROUND")
+	editBox.texture:SetPoint("TOPLEFT", editBox, "TOPLEFT", 0, fontSize + 4)
+	editBox.texture:SetWidth(editBox:GetWidth() + fontSize)
+	editBox.texture:SetHeight((editBox:GetWidth()) / 2)
+	editBox.texture:SetTexture("Interface\\AddOns\\PrettyChat\\Textures\\EditBox.tga")
+end
+
+--===================================================== CHAT FRAME ET SKIN
 
 --Determine si une chatFrame est docké a une autre chatFrame
 local function isMainFrame(i)
@@ -297,97 +321,38 @@ local function isMainFrame(i)
 end
 
 --Initialise parent, dimensions et textures des Tabs des chatframes
-local function CreateTabSkin()
-	for i = 1, NUM_CHAT_WINDOWS do
-		local tab = _G["ChatFrame" .. i .. "Tab"]
-		if tab then
-			-- tab:SetMovable(true)
-			-- tab:EnableMouse(true)
-			-- tab:RegisterForDrag("LeftButton")
-			tab:SetScript(
-				"OnDragStart",
-				function(self, button)
-				end
-			)
-			tab:SetScript(
-				"OnDragStop",
-				function(self)
-				end
-			)
-			tab:SetMovable(false)
-			tab:SetNormalTexture("Interface\\AddOns\\PrettyChat\\Textures\\ChatTab.tga")
-			tab:SetHighlightTexture("Interface\\AddOns\\PrettyChat\\Textures\\ChatTabHighlight.tga")
-			tab:SetPushedTexture("Interface\\AddOns\\PrettyChat\\Textures\\NillTexture.tga")
-			tab:SetAlpha(0)
-
-			tab.noMouseAlpha = 0
-			FCFTab_UpdateAlpha(_G[("ChatFrame%d"):format(i)])
-
-			tab.leftSelectedTexture:SetAlpha(0)
-			tab.rightSelectedTexture:SetAlpha(0)
-			tab.middleSelectedTexture:SetAlpha(0)
-
-			tab.leftHighlightTexture:SetTexture(nil)
-			tab.rightHighlightTexture:SetTexture(nil)
-			tab.middleHighlightTexture:SetTexture(nil)
-			tab:SetFrameStrata("BACKGROUND")
-
-			tab.middleHighlightTexture.SetVertexColor = noop
-
-			tab:HookScript(
-				"OnEnter",
-				function(self)
-					self:LockHighlight()
-				end
-			)
-			tab:HookScript(
-				"OnLeave",
-				function(self)
-					self:UnlockHighlight()
-				end
-			)
+local function CreateTabSkin(i)
+	local tab = _G["ChatFrame" .. i .. "Tab"]
+	tab:SetScript(
+		"OnDragStart",
+		function()
 		end
-	end
+	)
+	tab:SetScript(
+		"OnDragStop",
+		function()
+		end
+	)
+	tab:SetMovable(false)
+
+	tab:SetNormalTexture("Interface\\AddOns\\PrettyChat\\Textures\\ChatTab.tga")
+	tab:SetHighlightTexture("Interface\\AddOns\\PrettyChat\\Textures\\ChatTabHighlight.tga")
+	tab:SetPushedTexture("Interface\\AddOns\\PrettyChat\\Textures\\NillTexture.tga")
+
+	tab.leftHighlightTexture:SetTexture(nil)
+	tab.rightHighlightTexture:SetTexture(nil)
+	tab.middleHighlightTexture:SetTexture(nil)
+
+	tab:SetFrameStrata("BACKGROUND")
 end
-
---===================================================== EDIT BOX SKIN
-
---Créé les edits box (pas sur qu'il faille en créer 10 car j'ai l'impression qu'on utilise toujours l'editbox de la chatframe1)
-local function CreateEditBoxSkin()
-	for i = 1, 10 do
-		local editBox = _G[("ChatFrame%dEditBox"):format(i)]
-
-		_G[("ChatFrame%sEditBoxLeft"):format(i)]:SetAlpha(0)
-		_G[("ChatFrame%sEditBoxRight"):format(i)]:SetAlpha(0)
-		_G[("ChatFrame%sEditBoxMid"):format(i)]:SetAlpha(0)
-
-		editBox:SetFrameStrata("TOOLTIP")
-		editBox:SetFrameStrata("TOOLTIP")
-		editBox:SetMultiLine(true)
-		editBox:ClearAllPoints()
-		editBox:SetSpacing(fontSpacing)
-		editBox:SetPoint("BOTTOMLEFT", editFrame, "BOTTOMLEFT", -4, 0)
-		editBox:SetPoint("TOPRIGHT", editFrame, "TOPRIGHT")
-		editBox:SetFont("Fonts\\FRIZQT__.TTF", fontSize, "")
-		editBox:SetJustifyH("LEFT")
-		editBox:SetJustifyV("CENTER")
-
-		editBox.texture = editBox:CreateTexture(nil, "BACKGROUND")
-		editBox.texture:SetPoint("TOPLEFT", editBox, "TOPLEFT", 0, fontSize + 4)
-		editBox.texture:SetWidth(editBox:GetWidth() + fontSize)
-		editBox.texture:SetHeight((editBox:GetWidth()) / 2)
-		editBox.texture:SetTexture("Interface\\AddOns\\PrettyChat\\Textures\\EditBox.tga")
-	end
-end
-
---===================================================== MANIPULATION CHAT FRAME ET SKIN
 
 --Initialise la texture d'une chatFrame (pour apres redimensionnement)
-local function CreateChatSkin(chatFrame)
-	chatFrame:SetWidth(ChatFrame1:GetWidth())
-	chatFrame:SetHeight(ChatFrame1:GetHeight())
+local function CreateChatSkin(i)
+	local chatFrame = _G[("ChatFrame%d"):format(i)]
 	local widthOffset = -14 + chatFrame:GetWidth() / 15
 	local heightOffset = 6 + chatFrame:GetHeight() / 16
+	chatFrame.texture = chatFrame:CreateTexture(nil, "BACKGROUND")
+	chatFrame.texture:SetTexture("Interface\\AddOns\\PrettyChat\\Textures\\ChatBox.tga")
 	chatFrame.texture:SetPoint("TOPRIGHT", chatFrame, "TOPRIGHT", widthOffset, heightOffset)
 	chatFrame.texture:SetPoint("BOTTOMRIGHT", chatFrame, "BOTTOMRIGHT", widthOffset, -heightOffset)
 	chatFrame.texture:SetPoint("TOPLEFT", chatFrame, "TOPLEFT", -widthOffset, heightOffset)
@@ -396,38 +361,26 @@ local function CreateChatSkin(chatFrame)
 	chatFrame.texture:SetHeight(chatFrame:GetHeight() + ChatFrame1Tab:GetHeight() + 200)
 end
 
---Initialise le parent et la position d'une chatFrame (Si on redimensionne la chatFrame1 sans reset les ancres ca casse les chatFrames)
-local function AnchorChatFrames()
-	xOffset = -ChatFrame1:GetWidth() - 20
-	for i = 1, 10 do
-		if isMainFrame(i) then
-			local chatFrame = _G[("ChatFrame%d"):format(i)]
-			--chatFrame:SetMovable(false)
-			chatFrame:SetClampedToScreen(false)
-			chatFrame:ClearAllPoints()
-			chatFrame:SetPoint("BOTTOMLEFT", moveFrame, "BOTTOMLEFT", 4, 30)
-			chatFrame:SetFrameStrata("LOW")
-			CreateChatSkin(chatFrame)
-		end
-	end
-end
-
 --Initialise la texture d'une chatFrame
 local function CreateChatFrames()
+	xOffset = -ChatFrame1:GetWidth() - 20
 	for i = 1, 10 do
 		local chatFrame = _G[("ChatFrame%d"):format(i)]
-		--chatFrame:SetMovable(false)
 		if isMainFrame(i) then
 			chatFrame:SetClampedToScreen(false)
 			chatFrame:SetFading(false)
 			chatFrame:ClearAllPoints()
-			chatFrame:SetPoint("BOTTOMLEFT", moveFrame, "BOTTOMLEFT", 4, 30)
+			if i ~= 2 then
+				chatFrame:SetPoint("BOTTOMLEFT", moveFrame, "BOTTOMLEFT", 4, 30)
+				chatFrame:SetHeight(ChatFrame1:GetHeight())
+			else
+				chatFrame:SetPoint("BOTTOMLEFT", ChatFrame1, "BOTTOMLEFT", 4, ChatFrame1:GetHeight() - 21)
+				chatFrame:SetPoint("TOPRIGHT", ChatFrame1, "TOPRIGHT", 4, ChatFrame1:GetHeight())
+			end
 			chatFrame:SetFrameStrata("LOW")
-			chatFrame.texture = chatFrame:CreateTexture(nil, "BACKGROUND")
-			chatFrame.texture:SetTexture("Interface\\AddOns\\PrettyChat\\Textures\\ChatBox.tga")
+			chatFrame:SetWidth(ChatFrame1:GetWidth())
 		end
 	end
-	AnchorChatFrames()
 end
 
 --===================================================== MOUVEMENT DES FRAMES
@@ -518,13 +471,6 @@ local function OpenCloseAfterTimer()
 	end
 end
 
---Lorsque le joueur est entrain de taper un message
-local function OnEditFocusGained()
-	OpenChat()
-	OpenEdit()
-	isEditing = true
-end
-
 --Verifie si la souris est sur la mainframe, sinon on ferme le chat
 local function CheckMouse()
 	if not mainFrame:IsMouseOver(0, 0, 0, 0) then
@@ -560,7 +506,7 @@ local function StopResize(button)
 		end
 	end
 
-	AnchorChatFrames()
+	CreateChatFrames()
 end
 
 --Ferme le chat 2 sec apres que le joueur a terminé d'interagir avec l'edit box
@@ -568,6 +514,22 @@ local function CloseAfterTimer()
 	if isOpen and not isLocked then
 		C_Timer.After(2, CheckMouse)
 	end
+end
+
+--Lorsque le joueur est entrain de taper un message
+local function OnEditFocusGained()
+	-- Event handler function
+
+	print("de")
+	-- Get the current channel description
+	--local channelName, channelDesc = GetChannelName()
+
+	-- Update the description in the edit box
+	ChatFrame1EditBox:SetAttribute("channelTarget", "channelDesc" .. "d")
+
+	OpenChat()
+	OpenEdit()
+	isEditing = true
 end
 
 --Evenement quand le joueur a terminé d'interagir avec l'edit box
@@ -646,9 +608,14 @@ local function InitializeAddon()
 	CHAT_FRAME_FADE_TIME = 0
 	CHAT_FRAME_FADE_OUT_TIME = 0
 
-	CreateTabSkin()
 	CreateEditBoxSkin()
 	CreateChatFrames()
+	for i = 1, 10 do
+		if isMainFrame(i) then
+			CreateChatSkin(i)
+			CreateTabSkin(i)
+		end
+	end
 	GetJoinedChannels()
 	CheckMouse()
 end
